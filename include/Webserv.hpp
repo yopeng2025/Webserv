@@ -4,6 +4,11 @@
 // c++ header files
 #include <iostream>
 #include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <fstream>
+#include <sstream>
 
 // c header files
 # include <unistd.h>

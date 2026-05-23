@@ -1,4 +1,5 @@
 #include "Webserv.hpp"
+#include "Config.hpp"
 
 int main(int argc, char** argv) 
 {
@@ -14,8 +15,8 @@ int main(int argc, char** argv)
 
     try
     {
-        // Config config(configPath);
-        // config.parse(configPath);
+        Config config;                                                      
+        // config.parse(configPath);                                        // 
         LOG_INFO("Configuration loaded successfully from " + configPath);
         
         // Server server(config);
