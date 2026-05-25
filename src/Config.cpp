@@ -1,6 +1,8 @@
 #include "Webserv.hpp"
 #include "Config.hpp"
 
+#include <cctype> // std::isspace
+
 // ─── LocationConfig ──────────────────────────────────────────────────────────
 
 LocationConfig::LocationConfig():
@@ -67,8 +69,29 @@ const std::vector<ServerConfig>& Config::getServers() const
 const ServerConfig* Config::findServer(const std::string& host, int port) const
 {}
 
-void Config::_removeComments(){}
-void Config::_skipWhitespace(){}
+void Config::_removeComments()
+{
+	std::string result;
+	result.reserve(_content.size());
+	for (size_t i = 0; i < _content.size(); ++i)
+	{
+		if (_content[i] == '#')													// When meet #, jump until the end of the line(keeping the '\n')
+		{
+			while (i < _content.size() && _content[i] != '\n')
+				++i;
+		}
+		else
+			result += _content[i];
+	}
+	_content = result;
+}
+
+void Config::_skipWhitespace()
+{
+	while (_pos < _content.size() && std::isspace(static_cast<unsigned char>(_content[_pos])))
+		++_pos;
+}
+
 std::string Config::_nextToken(){}
 std::string Config::_expectToken(const std::string& expected){}
 void Config::_parseServer(){}
