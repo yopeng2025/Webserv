@@ -190,6 +190,8 @@ void Config::_parseServer()
 
 void Config::_parseListen(ServerConfig& server,const std::string& value)
 {
+	if (value == ";")
+		throw (std::runtime_error("invalid number of arguments in \"listen\" directive"));
     size_t colon = value.rfind(':');            //reverse find； 127.0.0.1:8080   [::1]:8080   localhost:8080   8080
     if (colon != std::string::npos)             // If a colon is found, split the value into host and port
     {
