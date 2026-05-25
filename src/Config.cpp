@@ -16,7 +16,7 @@ LocationConfig::LocationConfig():
 // ─── ServerConfig ────────────────────────────────────────────────────────────
 
 ServerConfig::ServerConfig():
-    host("0.0.0.0"), port(8080), clientMaxBody(1024 * 1024) {}  // default 1MB (= 1024KB; 1KB = 1024 bytes)
+    host("0.0.0.0"), port(80), clientMaxBody(1024 * 1024) {}  // default 1MB (= 1024KB; 1KB = 1024 bytes)
 
 const LocationConfig* ServerConfig::findLocation(const std::string& uri) const
 {
