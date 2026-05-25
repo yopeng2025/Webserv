@@ -16,7 +16,7 @@ int main(int argc, char** argv)
     try
     {
         Config config;                                                      
-        // config.parse(configPath);                                        // 
+        config.parse(configPath);
         LOG_INFO("Configuration loaded successfully from " + configPath);
         
         // Server server(config);
