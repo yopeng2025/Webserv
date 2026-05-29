@@ -27,3 +27,16 @@ std::string     Utils::toString(int n)
     oss << n;
     return oss.str();
 }
+
+std::string Utils::toUpper(const std::string& str)
+{
+    if (str.empty())
+        return str;
+    std::string s = str;
+    for (size_t i = 0; i < s.size(); i++)
+    {
+        if (s[i] >= 'a' && s[i] <= 'z')
+            s[i] = s[i] - ('a' - 'A');
+    }
+    return s;
+}

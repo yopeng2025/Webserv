@@ -240,6 +240,82 @@ void Config::_skipWhitespace()
 		++_pos;
 }
 
-void Config::_parseLocation(ServerConfig& server){}
+void Config::_parseLocation(ServerConfig& server)
+{
+    LocationConfig location;
+    std::string path = _nextToken();
+    if (path[0] && path[0] != '/')
+        throw std::runtime_error("Unvalid location path: " + path);
+    location.path = path;
+    _expectToken("{");
 
-void Config::_vlidateConfig(){}
+    while (true)
+    {
+        std::string token = _nextToken();
+        if (token == "}")
+            break;
+        if (token.empty())
+            throw std::runtime_error("Unexpected end of config in location block");
+        else if (token == "root")
+        {
+            location.root = _nextToken();
+            _expectToken(";");
+        }
+        else if (token == "index")
+        {
+            location.index = _nextToken();
+            _expectToken(";");
+        }
+        else if (token == "methods" || token == "allow_methods" || token == "limit_except")
+        {
+            location.methods.clear();
+            while (true)
+            {
+                std::string method = _nextToken();
+                if (method == ";")
+                    break;
+                location.methods.insert(Utils::toUpper(method));
+            }
+        }
+        else if (token == "autoindex")
+        {
+            std::string value = _nextToken();
+            location.autoindex = (value == "on");
+            _expectToken(";");
+        }
+        else if (token == "upload_path")
+        {
+            location.uploadPath = _nextToken();
+            _expectToken(";");
+        }
+        else if (token == "cgi_ext")
+        {
+            location.cgiExtension = _nextToken();
+            _expectToken(";");
+        }
+        else if (token == "cgi_path")
+        {
+            location.cgiPath = _nextToken();
+            _expectToken(";");
+        }
+        else if (token == "return")
+        {
+            std::string code = _nextToken();
+            std::string url = _nextToken();
+            int codeInt = Utils::toInt(code);
+            if (codeInt < 300 || codeInt >= 400)
+                throw std::runtime_error("Invalid redirect code: " + code);
+            location.redirectCode = codeInt;
+            location.redirect = url;
+            _expectToken(";");
+        }
+        else
+            throw std::runtime_error("Unknown directive in location block: '" + token + "'");
+    }
+    server.locations.push_back(location);
+}
+
+void Config::_vlidateConfig()
+{
+    
+}
