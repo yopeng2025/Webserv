@@ -141,7 +141,7 @@ void Config::_parseServer()
             while (true)
             {
                 std::string name = _nextToken();
-                if (name == ";")
+                if (name == ";")                    //server_name 为空的情况下如何处理？待研究...
                     break;
                 server.serverNames.push_back(name);
             }
@@ -222,7 +222,9 @@ void Config::_parseListen(ServerConfig& server,const std::string& value)
         else
             server.host = value;                  // "127.0.0.1" or "localhost"
     }
-
+    // port 1-1023: well-konwn ports, saved for system use, require root privileges to bind (e.g. 80 for HTTP, 443 for HTTPS)
+    // port 1024-49151: registered ports, can be used by user applications (e.g. 8080 for HTTP alternative, 3306 for MySQL)
+    // port 49152-65535: dynamic/private ports, can be used by user applications (e.g. 49152 for ephemeral ports)
     if (server.port == 0 || server.port > 65535)
         throw std::runtime_error("Invalid port " + Utils::toString(server.port));
 }
