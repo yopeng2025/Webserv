@@ -2,8 +2,6 @@
 #include "Config.hpp"
 #include "Utils.hpp"
 
-#include <cctype> // std::isspace
-
 // ─── LocationConfig ──────────────────────────────────────────────────────────
 
 LocationConfig::LocationConfig():
@@ -133,7 +131,7 @@ void Config::_parseServer()
             while (true)
             {
                 std::string name = _nextToken();
-                if (name == ";")
+                if (name == ";")                    //server_name 为空的情况下如何处理？待研究...
                     break;
                 server.serverNames.push_back(name);
             }

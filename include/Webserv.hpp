@@ -10,6 +10,7 @@
 # include <fstream>
 # include <sstream>
 # include <limits>
+# include <cctype> // std::isspace
 
 // c header files
 # include <unistd.h>
