@@ -10,6 +10,8 @@ namespace Utils
     int             toInt(const std::string& str);
     std::string     toString(int n);
     std::string     toUpper(const std::string& str);
+
+    
 }
 
 #endif

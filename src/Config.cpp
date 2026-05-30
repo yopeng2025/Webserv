@@ -317,5 +317,41 @@ void Config::_parseLocation(ServerConfig& server)
 
 void Config::_vlidateConfig()
 {
-    
+    for (size_t i = 0; i < _servers.size(); i++)
+    {
+        ServerConfig& prev_server = _servers[i];
+
+        for (size_t j = i + 1; j < _servers.size(); j++)
+        {
+            ServerConfig& next_server = _servers[j];
+
+            if (prev_server.host == next_server.host && \
+                prev_server.port == next_server.port)
+            {
+                bool hasdifferentnames = false;
+                if (!prev_server.serverNames.empty() && !next_server.serverNames.empty())
+                {
+                    for (size_t k = 0; k < prev_server.serverNames.size(); k++)
+                    {
+                        for (size_t l = 0; l < next_server.serverNames.size(); l++)
+                        {
+                            if (prev_server.serverNames[k] != next_server.serverNames[l])
+                                hasdifferentnames = true;
+                        }
+                    }
+
+                if (!hasdifferentnames)
+                    LOG_INFO("Duplicate server on " << prev_server.host << ":" << prev_server.port
+                            << " (same server_name). Second block will be ignored.");
+                }
+            }
+        }
+
+        for (size_t j = 0; j < prev_server.locations.size(); j++)
+        {
+            LocationConfig& loc = prev_server.locations[j];
+            if (loc.root.empty())
+                loc.root = "www";
+        }
+    }
 }
