@@ -18,10 +18,10 @@ LocationConfig::LocationConfig():
 ServerConfig::ServerConfig():
     host("0.0.0.0"), port(80), clientMaxBody(1024 * 1024) {}  // default 1MB (= 1024KB; 1KB = 1024 bytes)
 
-const LocationConfig* ServerConfig::findLocation(const std::string& uri) const
-{
+// const LocationConfig* ServerConfig::findLocation(const std::string& uri) const
+// {
 
-}
+// }
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -64,12 +64,26 @@ void Config::parse(const std::string& filepath)
 
 const std::vector<ServerConfig>& Config::getServers() const
 {
-
+    return _servers;
 }
 
 const ServerConfig* Config::findServer(const std::string& host, int port) const
 {
-
+    const ServerConfig* default_server = NULL;
+    for (size_t i = 0; i < _servers.size(); i++)
+    {
+        if (_servers[i].port == port)
+        {
+            if (default_server == NULL)
+                default_server = &_servers[i];
+            for (size_t j = 0; j < _servers[i].serverNames.size(); j++)
+            {
+                if (_servers[i].serverNames[j] == host)
+                    return &_servers[i];
+            }
+        }
+    }
+    return default_server;
 }
 
 std::string Config::_nextToken()
