@@ -19,7 +19,7 @@ class Server
 	private:
 		const Config&										_config;
 		bool												_running;
-		std::vector<struct pollfd>							_pullfds;
+		std::vector<struct pollfd>							_pollfds;
 		std::vector<int>									_listenFds;
 		// Fd + client
 		std::map<int, Client*>								_clients;
