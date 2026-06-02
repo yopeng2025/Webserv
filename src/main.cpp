@@ -1,17 +1,18 @@
 #include "Webserv.hpp"
 #include "Config.hpp"
+#include "Server.hpp"
 
 int main(int argc, char** argv) 
 {
-    std::string configPath = DEFAULT_CONFIG;
+	std::string configPath = DEFAULT_CONFIG;
 
-    if (argc > 2)
-    {
-        std::cerr << "Usage: " << argv[0] << " [config_path]" << std::endl;
-        return 1;
-    }
-    if (argc == 2)
-        configPath = argv[1];
+	if (argc > 2)
+	{
+		std::cerr << "Usage: " << argv[0] << " [config_path]" << std::endl;
+		return 1;
+	}
+	if (argc == 2)
+		configPath = argv[1];
 
     try
     {
