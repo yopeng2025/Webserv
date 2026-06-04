@@ -33,6 +33,9 @@ class Client
 		CGI*					_cgi;
 		size_t					_sendOffset;
 		time_t					_lastActivity;
+
+	Client(const Client& other);
+	Client& operator=(const Client&);
 };
 
 #endif

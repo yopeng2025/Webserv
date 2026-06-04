@@ -67,7 +67,7 @@ void Server::_createListenSockets()
         if (fd >= 0)
         {
             _listenFds.push_back(fd);
-            _listenSocket[fd] = address;
+            _listenSocket[fd]->host = address.first;
             // POLLIN： tell POLL to monitor the fd for incoming data (e.g., new connections or data to read)
             //          binary mask e.g. 0x0001
             _addPollFd(fd, POLLIN);
@@ -299,11 +299,17 @@ void	Server::_pollLoop()
 		}
 
 		// int poll(struct pollfd *fds, nfds_t nfds, int timeout)
+        // returns how many fds are ready for the requested
+        // -1 error; 0 timeout; >0 number of fds with events
 		int	ready = poll(&_pollfds[0], _pollfds.size(), 1000);
 
 		// 返回错误或者无事发生
 		if (ready <= 0)
+        {
+            if (!_running || !g_running)
+                break;
 			continue ;
+        }
 		
 		// 处理事件
 		for (size_t i = 0; i < _pollfds.size(); ++i)

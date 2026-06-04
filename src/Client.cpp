@@ -9,11 +9,11 @@ Client::Client(int fd, ListenSocket* ls)
       _response(),
       _cgi(NULL),
       _sendOffset(0),
-      _lastActivity(time(NULL))
-{
-}
+      _lastActivity(time(NULL)) {}
 
 Client::~Client()
 {
-  
+// NEED TO FILL  
 }
+
+Client::State Client::getState() const {return _state;}
