@@ -6,8 +6,6 @@
 #include "Client.hpp"
 #include "Utils.hpp"
 
-#include <poll.h> // poll()
-
 class Server
 {
 	public:

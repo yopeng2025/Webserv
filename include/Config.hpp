@@ -50,7 +50,7 @@ class Config
         void            _removeComments();
         void            _skipWhitespace();
         std::string     _nextToken();
-        void            _expectToken(const std::string& expected); //原本返回值是std::string，但在Config.cpp中实现时并没有使用返回值，所以改为void
+        void            _expectToken(const std::string& expected);
         void            _parseServer();
         void            _parseListen(ServerConfig& server,const std::string& value);
         void            _parseLocation(ServerConfig& server);

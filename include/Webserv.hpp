@@ -9,11 +9,20 @@
 # include <set>
 # include <fstream>
 # include <sstream>
-# include <limits>
-# include <cctype> // std::isspace
+# include <limits>              // std::numeric_limits, SOMAXCONN
+# include <cctype>              // std::isspace
+# include <cstring>             // std::strerror
 
 // c header files
 # include <unistd.h>
+# include <poll.h>              // poll()
+# include <signal.h>            // signal()
+# include <sys/socket.h>        // socket(), bind(), listen(), accept()
+# include <sys/types.h>         // socket(), bind(), listen(), accept()
+# include <fcntl.h>             // fcntl()
+# include <netinet/in.h>        // sockaddr_in, htons(), INADDR_ANY 
+# include <arpa/inet.h>         // inet_addr()
+# include <netdb.h>             // addrinfo(), getaddrinfo()   
 
 // marcos
 # define DEFAULT_CONFIG "config/default.conf"
