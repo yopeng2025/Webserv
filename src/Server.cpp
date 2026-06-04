@@ -215,3 +215,14 @@ void    Server::_addPollFd(int fd, short event)
     pfd.revents = 0;            // do not return any events yet (only set by poll() when events occur)
     _pollfds.push_back(pfd);
 }
+
+
+/*
+poll loop:
+1. update client poll events
+2. poll()
+3. handle events:
+    a. if event on listen socket: accept new connection
+    b. if event on client socket: read/write data [recev() / send()]
+4. CGI handling (pipe read/write to poll)
+*/
