@@ -12,8 +12,16 @@
 # include <limits>
 # include <cctype> // std::isspace
 
+
 // c header files
 # include <unistd.h>
+# include <poll.h> // poll()
+# include <sys/types.h> // accept / socket / bind / listen
+# include <sys/socket.h>
+# include <netinet/in.h>
+# include <arpa/inet.h>
+# include <unistd.h>
+# include <fcntl.h> // fcntl()
 
 // marcos
 # define DEFAULT_CONFIG "config/default.conf"
