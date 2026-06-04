@@ -5,6 +5,15 @@
 #include "Config.hpp"
 #include "Client.hpp"
 #include "Utils.hpp"
+#include "CGI.hpp"
+
+struct ListenSocket
+{
+	int fd;
+	std::string host;
+	int port;
+	const ServerConfig* Config;
+};
 
 class Server
 {
@@ -22,7 +31,8 @@ class Server
 		// Fd + client
 		std::map<int, Client*>								_clients;
 		// Fd + host:port (pair)
-		std::map<int, std::pair<std::string, int>>			_listenSocket;
+		// std::map<int, std::pair<std::string, int>>			_listenSocket;
+		std::map<int, ListenSocket*>							_listenSocket;
 		
 		void	_createListenSockets();
 		int		_createSocket(const std::string& host, int port);
