@@ -31,7 +31,7 @@ void Server::run()
 
     _createListenSockets();
 
-    if (_listenFds.empty())
+    if (_listenSocket.empty())
      throw std::runtime_error("No valid listen sockets created");
 
     _running = true;
@@ -66,8 +66,13 @@ void Server::_createListenSockets()
         // fd = 2: stderr
         if (fd >= 0)
         {
-            _listenFds.push_back(fd);
-            _listenSocket[fd] = address;
+			ListenSocket* ls = new ListenSocket();
+            ls->fd = fd;
+            ls->host = servers[i].host;
+            ls->port = servers[i].port;
+            ls->Config = &servers[i];
+			_listenSocket[fd] = ls;
+
             // POLLIN： tell POLL to monitor the fd for incoming data (e.g., new connections or data to read)
             //          binary mask e.g. 0x0001
             _addPollFd(fd, POLLIN);
@@ -250,6 +255,25 @@ void	Server::_removePollFd(int fd)
 	}
 }
 
+void	Server::_removeClient(int fd)
+{
+	std::map<int, Client*>::iterator it =_clients.find(fd);
+	if (it != _clients.end())
+	{
+		CGI* cgi = it->second->getCGI();
+		if (cgi)
+		{
+			if (cgi->getInputFd() >= 0)
+				_removePollFd(cgi->getInputFd());
+			if (cgi->getOutputFd() >= 0)
+				_removePollFd(cgi->getOutputFd());
+		}
+		_removePollFd(fd);
+		delete (it->second);
+		_clients.erase(it);
+	}
+}
+
 void	Server::_acceptConnection(int listenFd)
 {
 	// int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) 后两个可选
@@ -276,27 +300,195 @@ void	Server::_acceptConnection(int listenFd)
 	_addPollFd(clientFd, POLLIN);
 }
 
+void	Server::_handleClientRead(int fd)
+{
+	std::map<int, Client*>::iterator it = _clients.find(fd);
+	if (it != _clients.end())
+	{
+		// 去到client里读数据
+		if (!it->second->readData())
+			_removeClient(fd);
+	}
+}
+
+void	Server::_handleClientWrite(int fd)
+{
+	std::map<int, Client*>::iterator it = _clients.find(fd);
+	if (it != _clients.end())
+	{
+		// 去到client里发数据
+		if (!it->second->sendData())
+			_removeClient(fd);
+	}
+}
+
+void	Server::_updatePollEvent()
+{
+	for (size_t i = 0; i < _pollfds.size(); ++i)
+	{
+		int fd = _pollfds[i].fd;
+		std::map<int, Client*>::iterator it = _clients.find(fd);
+		if (it == _clients.end())
+			return ;
+		
+		Client* c = it->second;
+		short events = 0;
+
+		if (c->getState() == Client::STATE_READING)
+			events |= POLLIN;
+		if (c->getState() == Client::STATE_SENDING)
+			events |= POLLOUT;
+		if (c->getState() == Client::STATE_CGI_RUNNING)
+			events = 0;
+		_pollfds[i].events = events;
+	}
+}
+
+void	Server::_handlePollEvent()
+{
+	for (size_t i = 0; i < _pollfds.size(); ++i)
+	{
+		// 判断是那个socket的事件
+		int socket = _pollfds[i].fd;
+		short revent = _pollfds[i].revents;
+
+		// 1. 看是不是Listen socket有新的连接
+		bool isListen = false;
+		for (std::map<int, ListenSocket*>::iterator it; it != _listenSocket.end(); ++it)
+		{
+			int fd = it->first;
+			if (socket == fd && (revent & POLLIN))
+			{
+				_acceptConnection(socket);
+				isListen = true;
+				break ;
+			}
+		}
+		if (isListen)
+			continue ;
+
+		// 2. 看是不是CGI pipe ❗可使用_fdToClient
+		bool isCGI = false;
+		for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+		{
+			CGI* cgi = it->second->getCGI();
+			if (cgi)
+			{
+				if (socket == cgi->getOutputFd())
+				{
+					// 不管是读还是挂断 都去读完然后看是否finish
+					if (revent & POLLIN || revent & POLLHUP)
+						_handleCGIRead(socket);
+				}
+				else if (socket == cgi->getInputFd())
+				{
+					if (revent & POLLOUT)
+						_handleCGIWrite(socket);
+				}
+				isCGI = true;
+			}
+		}
+		if (isCGI)
+			continue ;
+
+		// 3. 检查是否有错误、挂断或无效等 并清除client
+		if (revent & (POLLERR | POLLHUP | POLLNVAL))
+		{
+			_removeClient(socket);
+			continue ;
+		}
+
+		// 4. Client Socket的读和写
+		if (revent & POLLIN)
+			_handleClientRead(socket);
+			//检查 client是否还存在
+		if (_clients.find(socket) == _clients.end())
+			continue ;
+		if (revent & POLLOUT)
+			_handleClientWrite(socket);
+	}
+}
+
+void	Server::_processClient()
+{
+	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		Client* c = it->second;
+		if (c->getState() == Client::STATE_PROCESSING)
+		{
+			c->process(_config);
+
+			CGI* cgi = c->getCGI();
+			if (cgi)
+			{
+				if (cgi->getInputFd() >= 0)
+					_addPollFd(cgi->getInputFd(), POLLOUT);
+				if (cgi->getOutputFd() >= 0)
+					_addPollFd(cgi->getOutputFd(), POLLIN);
+			}
+		}
+	}
+}
+
+void	Server::_checkCGI()
+{
+	for (std::map<int, Client*>::iterator it; it != _clients.end(); ++it)
+	{
+		Client* c = it->second;
+		CGI* cgi = c->getCGI();
+		
+		if (cgi && c->getState() == Client::STATE_CGI_RUNNING)
+		{
+			cgi->reapChild();
+			if (cgi->isDone())
+				c->finalizeCGI();
+			else if (cgi->checkTimeout())
+			{
+				if (cgi->getOutputFd() >= 0)
+					_removePollFd(cgi->getOutputFd());
+				if (cgi->getInputFd() >= 0)
+					_removePollFd(cgi->getInputFd());
+				cgi->kill();
+				c->finalizeCGI();
+			}
+		}
+	}
+}
+
+void	Server::_checkTimeouts()
+{
+	std::vector<int> timeOut;
+	for (std::map<int, Client*>::iterator it; it != _clients.end(); ++it)
+	{
+		if (it->second->getState() == Client::STATE_CGI_RUNNING && it->second->hasTimeout())
+			timeOut.push_back(it->first);
+	}
+	for (size_t i = 0; i < timeOut.size(); ++i)
+	{
+		LOG_WARN("Client timeout, disconnecting fd " << timeOut[i]);
+		_removeClient(timeOut[i]);
+	}
+}
+
+
+void	Server::_removeDoneClient()
+{
+	std::vector<int> toRemove;
+	for (std::map<int, Client*>::iterator it; it != _clients.end(); ++it)
+	{
+		if (it->second->getState() == Client::STATE_DONE)
+			toRemove.push_back(it->first);
+	}
+	for (size_t i = 0; i < toRemove.size(); ++i)
+		_removeClient(toRemove[i]);
+}
+
 void	Server::_pollLoop()
 {
 	while (_running && g_running)
 	{
-		// 更新client状态 决定监听的动作
-		for (size_t i = 0; i < _pollfds.size(); ++i)
-		{
-			int fd = _pollfds[i].fd;
-			std::map<int, Client*>::iterator it = _clients.find(fd);
-			if (it != _clients.end())
-			{
-				short events = 0;
-				if (it->second->getState() == Client::STATE_READING)
-					events |= POLLIN;
-				if (it->second->getState() == Client::STATE_SENDING)
-					events |= POLLOUT;
-				if (it->second->getState() == Client::STATE_CGI_RUNNING)
-					events = 0;
-				_pollfds[i].events = events;
-			}
-		}
+		// 1. 更新client状态 决定监听的动作
+		_updatePollEvent();
 
 		// int poll(struct pollfd *fds, nfds_t nfds, int timeout)
 		int	ready = poll(&_pollfds[0], _pollfds.size(), 1000);
@@ -305,48 +497,19 @@ void	Server::_pollLoop()
 		if (ready <= 0)
 			continue ;
 		
-		// 处理事件
-		for (size_t i = 0; i < _pollfds.size(); ++i)
-		{
-			// 判断是那个socket的事件
-			int socket = _pollfds[i].fd;
-			short revent = _pollfds[i].revents;
+		// 2. 处理事件
+		_handlePollEvent();
 
-			// 1. 看是不是Listen socket有新的连接
-			bool isListen = false;
-			for (size_t j = 0; j < _listenFds.size(); ++i)
-			{
-				if (socket == _listenFds[j] && (revent & POLLIN))
-				{
-					_acceptConnection(socket);
-					isListen = true;
-					break ;
-				}
-			}
-			if (isListen)
-				continue ;
+		// 3. 处理刚读完的 正在process状态的client
+		_processClient();
 
-			// 2. 看是不是CGI pipe
-			bool isCGI = false;
-			for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-			{
-				CGI* cgi = it->second->getCGI();
-				if (cgi)
-				{
-					if (cgi->getOutputFd() == socket)
-					{
+		// 4. 结束CGI 查看CGI是正常结束还是卡死超时
+		_checkCGI();
 
-					}
-					if (cgi->getInputFd() == socket)
-					{
-						
-					}
-				}
-			}
+		// 5. 查看HTTP是否超时
+		_checkTimeouts();
 
-		}
+		// 6. 回收完成生命周期的client （正常client， 非正常的前面都已回收）
+		_removeDoneClient();
 	}
-
-
-
 }
