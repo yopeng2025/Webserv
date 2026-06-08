@@ -231,17 +231,6 @@ void    Server::_addPollFd(int fd, short event)
     _pollfds.push_back(pfd);
 }
 
-
-/*
-poll loop:
-1. update client poll events
-2. poll()
-3. handle events:
-    a. if event on listen socket: accept new connection
-    b. if event on client socket: read/write data [recev() / send()]
-4. CGI handling (pipe read/write to poll)
-*/
-
 bool	setNonBlocking(int clientFd)
 {
 	// 查看并修改fd属性 设置non-blocking模式
@@ -287,6 +276,8 @@ void	Server::_removeClient(int fd)
 void	Server::_acceptConnection(int listenFd)
 {
 	// int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) 后两个可选
+	// create a new socket for the accepted connection and return its fd
+	// failure fd = -1 success: fd >= 0
 	int clientFd = accept(listenFd, NULL, NULL);
 	if (clientFd < 0)
 		return ;
@@ -335,7 +326,6 @@ void	Server::_handleCGIWrite(int fd)
 			_removePollFd(cgi->getInputFd());
 	}
 }
-
 
 void	Server::_handleClientRead(int fd)
 {
@@ -391,10 +381,10 @@ void	Server::_handlePollEvent()
 
 		// 1. 看是不是Listen socket有新的连接
 		bool isListen = false;
-		for (std::map<int, ListenSocket*>::iterator it; it != _listenSocket.end(); ++it)
+		for (std::map<int, ListenSocket*>::iterator it = _listenSocket.begin(); it != _listenSocket.end(); ++it)
 		{
 			int fd = it->first;
-			if (socket == fd && (revent & POLLIN))
+			if (socket == fd && (revent & POLLIN))		// bitwise AND
 			{
 				_acceptConnection(socket);
 				isListen = true;
@@ -469,7 +459,7 @@ void	Server::_processClient()
 
 void	Server::_checkCGI()
 {
-	for (std::map<int, Client*>::iterator it; it != _clients.end(); ++it)
+	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
 		Client* c = it->second;
 		CGI* cgi = c->getCGI();
@@ -495,7 +485,7 @@ void	Server::_checkCGI()
 void	Server::_checkTimeouts()
 {
 	std::vector<int> timeOut;
-	for (std::map<int, Client*>::iterator it; it != _clients.end(); ++it)
+	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
 		if (it->second->getState() == Client::STATE_CGI_RUNNING && it->second->hasTimeout())
 			timeOut.push_back(it->first);
@@ -507,11 +497,10 @@ void	Server::_checkTimeouts()
 	}
 }
 
-
 void	Server::_removeDoneClient()
 {
 	std::vector<int> toRemove;
-	for (std::map<int, Client*>::iterator it; it != _clients.end(); ++it)
+	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
 		if (it->second->getState() == Client::STATE_DONE)
 			toRemove.push_back(it->first);
@@ -528,7 +517,10 @@ void	Server::_pollLoop()
 		_updatePollEvent();
 
 		// int poll(struct pollfd *fds, nfds_t nfds, int timeout)
-        // returns how many fds are ready for the requested
+		// 1. pollfds -> kernel
+		// 2. kernel monitors events on these fds (listen sockets / client sockets / CGI pipes)
+		// 3. pollfds.revents = POLLIN/POLLOUT/POLLERR/POLLHUP/POLLNVAL
+		// returns how many fds are ready for the requested
         // -1 error; 0 timeout; >0 number of fds with events
 		int	ready = poll(&_pollfds[0], _pollfds.size(), 1000);
 

@@ -17,3 +17,11 @@ Client::~Client()
 }
 
 Client::State Client::getState() const {return _state;}
+
+CGI* Client::getCGI() const {return _cgi;}
+
+bool Client::hasTimeout() const
+{
+  // time(NULL): returns seconds since the Unix epoch (January 1, 1970).
+  return ((time(NULL) - _lastActivity) >= CLIENT_TIMEOUT);
+}

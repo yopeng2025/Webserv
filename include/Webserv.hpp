@@ -12,6 +12,7 @@
 # include <limits>              // std::numeric_limits, SOMAXCONN
 # include <cctype>              // std::isspace
 # include <cstring>             // std::strerror
+# include <ctime>               // time()
 
 
 // c header files
@@ -27,6 +28,7 @@
 # include <unistd.h>
 // marcos
 # define DEFAULT_CONFIG "config/default.conf"
+# define CLIENT_TIMEOUT 60
 
 # define LOG_INFO(msg) std::cout << "[INFO] " << msg << std::endl;
 # define LOG_ERROR(msg) std::cerr << "[ERROR] " << msg << std::endl;

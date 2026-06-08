@@ -22,6 +22,7 @@ class Client
 
 		State	getState() const;
 		CGI*	getCGI() const;
+		bool	hasTimeout() const;
 
 	private:
 		int						_fd;
