@@ -27,24 +27,29 @@ class Server
 		const Config&										_config;
 		bool												_running;
 		std::vector<struct pollfd>							_pollfds;
-		std::vector<int>									_listenFds;
-		// Fd + client
+		// Client fd + client
+		std::map<int, Client*>								_fdToClients;
+		// Client fd + CGI i/o fd + client
 		std::map<int, Client*>								_clients;
-		// Fd + host:port (pair)
-		// std::map<int, std::pair<std::string, int>>		_listenSocket;
+		// Listen fd + ListenSocket
 		std::map<int, ListenSocket*>						_listenSocket;
 		
 		void	_createListenSockets();
 		int		_createSocket(const std::string& host, int port);
 
 		void	_pollLoop();
+		void	_updatePollEvent();
+		void	_handlePollEvent();
+		void	_processClient();
+		void	_checkCGI();
+		void	_checkTimeouts();
+		void	_removeDoneClient();
 		void	_acceptConnection(int listenFd);
 		void	_handleClientRead(int fd);
 		void	_handleClientWrite(int fd);
 		void	_handleCGIRead(int fd);
 		void	_handleCGIWrite(int fd);
 		void	_removeClient(int fd);
-		void	_checkTimeouts();
 
 		void	_addPollFd(int fd, short events);
 		void	_removePollFd(int fd);
