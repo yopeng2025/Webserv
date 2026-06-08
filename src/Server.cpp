@@ -8,7 +8,17 @@ Server::Server(const Config& config): _config(config), _running(false) {}
 
 Server::~Server() 
 {
-    // NEED TO FILL
+	for (std::map<int, Client*>::iterator it; it != _clients.end(); ++it)
+		delete (it->second);
+	_clients.clear();
+
+	for (std::map<int, ListenSocket*>::iterator it; it != _listenSocket.end(); ++ it)
+	{
+		close(it->first);
+		delete (it->second);
+	}
+	_listenSocket.clear();
+	_pollfds.clear();
 }
 
 void signalHandler(int sig)
@@ -300,6 +310,33 @@ void	Server::_acceptConnection(int listenFd)
 	_addPollFd(clientFd, POLLIN);
 }
 
+void	Server::_handleCGIRead(int fd)
+{
+	std::map<int, Client*>::iterator it = _clients.find(fd);
+	Client* c = it->second;
+	CGI* cgi = c->getCGI();
+	if (cgi)
+	{
+		bool done = cgi->readOutput();
+		if (done)
+			_removePollFd(cgi->getOutputFd());
+	}
+}
+
+void	Server::_handleCGIWrite(int fd)
+{
+	std::map<int, Client*>::iterator it = _clients.find(fd);
+	Client* c = it->second;
+	CGI* cgi = c->getCGI();
+	if (cgi)
+	{
+		bool done = cgi->readIntput();
+		if (done)
+			_removePollFd(cgi->getInputFd());
+	}
+}
+
+
 void	Server::_handleClientRead(int fd)
 {
 	std::map<int, Client*>::iterator it = _clients.find(fd);
@@ -378,12 +415,12 @@ void	Server::_handlePollEvent()
 				{
 					// 不管是读还是挂断 都去读完然后看是否finish
 					if (revent & POLLIN || revent & POLLHUP)
-						_handleCGIRead(socket);
+						_handleCGIRead(it->first);
 				}
 				else if (socket == cgi->getInputFd())
 				{
 					if (revent & POLLOUT)
-						_handleCGIWrite(socket);
+						_handleCGIWrite(it->first);
 				}
 				isCGI = true;
 			}
