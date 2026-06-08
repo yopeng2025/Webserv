@@ -54,14 +54,14 @@ void Server::_createListenSockets()
         // localhost:8080 or 127.0.0.1:8080
         std::pair<std::string, int> address(servers[i].host, servers[i].port);
 
-        // != .end(): same host:port is already created, skip this iteration to avoid duplicate sockets
-        // == .end(): address havent been in createcSockets yet
+        // != .end(): same host:port is already created, skip this iteration to avoid duplicate sockets  （这里对应validateConfig里, 2个同样的host:port只处理第一个host:port）
+        // == .end(): address haven't been in createcSockets yet
         if (createdSockets.find(address) != createdSockets.end())
             continue;
         
         int fd = _createSocket(servers[i].host, servers[i].port);
         // fd < 0: fail
-        // fd = 0: stdin
+        // fd = 0: stdin*
         // fd = 1: stdout
         // fd = 2: stderr
         if (fd >= 0)

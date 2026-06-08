@@ -145,7 +145,7 @@ void Config::_parseServer()
             while (true)
             {
                 std::string name = _nextToken();
-                if (name == ";")                    //server_name 为空的情况下如何处理？待研究...
+                if (name == ";")
                     break;
                 server.serverNames.push_back(name);
             }
@@ -341,11 +341,16 @@ void Config::_vlidateConfig()
         {
             ServerConfig& next_server = _servers[j];
 
+            // server1: localhost:8080 server_name=localhost
+            // server2: localhost:8080 server_name=empty
             if (prev_server.host == next_server.host && \
                 prev_server.port == next_server.port)
             {
                 bool hasdifferentnames = false;
-                if (!prev_server.serverNames.empty() && !next_server.serverNames.empty())
+                if (prev_server.serverNames.empty() || next_server.serverNames.empty())
+                    hasdifferentnames = false;
+
+                else
                 {
                     for (size_t k = 0; k < prev_server.serverNames.size(); k++)
                     {
