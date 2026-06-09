@@ -18,10 +18,30 @@ LocationConfig::LocationConfig():
 ServerConfig::ServerConfig():
     host("0.0.0.0"), port(80), clientMaxBody(1024 * 1024) {}  // default 1MB (= 1024KB; 1KB = 1024 bytes)
 
-// const LocationConfig* ServerConfig::findLocation(const std::string& uri) const
-// {
+// GET /images/logo.png HTTP/1.1
+// uri = "/images/logo.png"
+const LocationConfig* ServerConfig::findLocation(const std::string& uri) const
+{
+    const LocationConfig* bestMatch = NULL;
+    size_t bestMatchLength = 0;
 
-// }
+    for (size_t i = 0; i < locations.size(); i++)
+    {
+        const std::string& locationPath = locations[i].path;
+
+        // Check if the location path is a prefix of the URI
+        // e.g. locationPath = "/" or "/images" or "/images/logo"
+        if (Utils::startsWith(uri, locationPath))  
+        {
+            if (locationPath.length() > bestMatchLength) 
+            {
+                bestMatch = &locations[i];
+                bestMatchLength = locationPath.length(); // update the best match with the longest matching prefix (/images/logo > /images > /)
+            }
+        }
+    }
+    return bestMatch;
+}
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 

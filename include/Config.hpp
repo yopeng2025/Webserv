@@ -29,7 +29,7 @@ struct ServerConfig
     std::vector<LocationConfig> locations;
 
     ServerConfig();
-    // const LocationConfig*       findLocation(const std::string& uri) const;
+    const LocationConfig*       findLocation(const std::string& uri) const;
 };
 
 class Config

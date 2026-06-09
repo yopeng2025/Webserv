@@ -40,3 +40,12 @@ std::string Utils::toUpper(const std::string& str)
     }
     return s;
 }
+
+bool Utils::startsWith(const std::string& str, const std::string& prefix)
+{
+    if (prefix.size() > str.size())
+        return false;
+    // compare( size_t pos, size_t len, const string& str) 
+    // Compare the substring of length len starting at position pos with the string str
+    return (str.compare(0, prefix.size(), prefix) == 0);
+}

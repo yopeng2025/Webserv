@@ -11,6 +11,8 @@ namespace Utils
     std::string     toString(int n);
     std::string     toUpper(const std::string& str);
 
+    // string
+    bool            startsWith(const std::string& str, const std::string& prefix);
     
 }
 

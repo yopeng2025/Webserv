@@ -85,6 +85,8 @@ void Server::_createListenSockets()
 
             // POLLIN： tell POLL to monitor the fd for incoming data (e.g., new connections or data to read)
             //          binary mask e.g. 0x0001
+			// POLLIN  = server收请求（recv HTTP request）
+			// POLLOUT = server发响应（send HTTP response）
             _addPollFd(fd, POLLIN);
  
             createdSockets.insert(address);
@@ -277,7 +279,7 @@ void	Server::_acceptConnection(int listenFd)
 {
 	// int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) 后两个可选
 	// create a new socket for the accepted connection and return its fd
-	// failure fd = -1 success: fd >= 0
+	// failure -1 success >=0
 	int clientFd = accept(listenFd, NULL, NULL);
 	if (clientFd < 0)
 		return ;
@@ -386,6 +388,7 @@ void	Server::_handlePollEvent()
 			int fd = it->first;
 			if (socket == fd && (revent & POLLIN))		// bitwise AND
 			{
+				// 新建连接之后，会在_client里新建client对象 并且在pollfd里添加这个client的fd和POLLIN事件
 				_acceptConnection(socket);
 				isListen = true;
 				break ;
@@ -412,7 +415,8 @@ void	Server::_handlePollEvent()
 					if (revent & POLLOUT)
 						_handleCGIWrite(it->first);
 				}
-				isCGI = true;
+				isCGI = true;							//？？？ 这个判断是否要放在handleCGIRead/Write里？ 还是说只要这个socket是CGI的输入输出管道 就不处理client的读写事件了？
+														//（因为CGI的输入输出管道和client的读写事件是分开的） 目前放在外面 只要这个socket是CGI的输入输出管道 就不处理client的读写事件了
 			}
 		}
 		if (isCGI)
@@ -425,7 +429,7 @@ void	Server::_handlePollEvent()
 			continue ;
 		}
 
-		// 4. Client Socket的读和写
+		// 4. Client Socket的读和写 (前面已经处理好listen和CGI pipe，所以剩下的就是client socket)
 		if (revent & POLLIN)
 			_handleClientRead(socket);
 			//检查 client是否还存在

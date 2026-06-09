@@ -5,23 +5,163 @@ Client::Client(int fd, ListenSocket* ls)
       _listen(ls), 
       _server(NULL), 
       _state(STATE_READING),
-      _request(),
+      _request().setMaxBodySize(maxBodySize),
       _response(),
       _cgi(NULL),
       _sendOffset(0),
+      _matchedServer(NULL)
       _lastActivity(time(NULL)) {}
 
 Client::~Client()
 {
-// NEED TO FILL  
+  if (_cgi)
+  {
+    delete _cgi;
+    _cgi = NULL;
+  }
+  if (_fd >= 0)
+  {
+    close(_fd);
+    _fd = -1;
+  }
 }
+
+time_t Client::getLastActivity() const {return _lastActivity;}
 
 Client::State Client::getState() const {return _state;}
 
 CGI* Client::getCGI() const {return _cgi;}
 
+int Client::getFd() const {return _fd;}
+
 bool Client::hasTimeout() const
 {
   // time(NULL): returns seconds since the Unix epoch (January 1, 1970).
   return ((time(NULL) - _lastActivity) >= CLIENT_TIMEOUT);
+}
+
+bool Client::readData()
+{
+  char buffer[BUFFER_SIZE];
+  
+  // 1. 从socket读取数据到缓冲区
+  // = 0 client closed connection, < 0 error occurred, > 0 bytes read successfully
+  ssize_t bytesRead = recv(_fd, buffer, sizeof(buffer), 0);
+  if (bytesRead <= 0)
+    return false;
+  
+  // 2. 更新时间戳
+  _lastActivity = time(NULL);
+
+  // 3. 将数据追加到请求对象中，并检查请求是否完整
+  std::string data(buffer, bytesRead);
+  bool isComplete = _request.feed(data);
+  if (isComplete)
+  {
+    // 4. 解析请求失败，构建错误响应
+    if (_request.getState() == Request::PARSE_ERROR)
+    {
+      ServerConfig deaultServerConfig;
+      _response.BuildError(_request.getErrorCode(), defaultServerConfig);
+      _state = STATE_SENDING;
+    }
+    else
+     _state = STATE_PROCESSING;
+  }
+  return true;
+}
+
+bool Client::sendData()
+{
+  // 1.  如果响应还没有准备好，继续等待
+  if (!_response.isReady())
+    return true;
+  
+  // 2. 从响应对象获取要发送的数据
+  const std::string& data = _response.getDate();
+  size_t remainData = data.size() - _sendOffset;  //没发送 = 总数据 - 已发送
+  
+  // 发送完成， 没有剩余的数据了
+  if (remainData == 0)
+  {
+    _state = STATE_DONE;
+    return true;  
+  }
+
+  // 3. 发送数据
+  // data.c_str() + _sendOffset: 发送数据的起始位置
+  // remainData: 还需要发送的数据长度
+  // send() returns the number of bytes actually sent, which may be less than remainData
+  ssize_t bytesSent = send(_fd, data.c_str() + _sendOffset, remianData, 0);
+  if (bytesSent <= 0)
+    return false;
+  
+  _sendOffset += bytesSent;     // 更新已发送的字节数
+  _lastActivity = time(NULL);   // 更新时间戳
+
+  if (_sendOffset >= data.size())
+    _state = STATE_DONE;        // 全部数据发送完成，标记为DONE状态
+  
+  return true;
+}
+
+// Routing
+// 1. 从Host header中提取host部分
+// 2. 根据host和监听端口在配置中找到匹配的server config
+void Client::process(const Config& config)
+{
+  if (_state != STATE_PROCESSING)
+    return;
+  
+  // Host: example.com:8080 -> example.com:8080
+  std::string hostHeader = _request.getHeader("Host");
+  std::string host;
+
+  size_t colon_index = hostHeader.find(':');
+  if (colon_index != std::string::npos)
+    host = hostHeader.substr(0, colon_index); //example.com
+  
+  const ServerConfig* server = config.findServer(host, _port); 
+  if (!server)
+  {
+    if (!config.getServers().empty())    // 如果没有匹配的server config，使用配置中的第一个server config作为默认
+      server = &config.getServers()[0];  
+    else                                 // 如果给出的.conf文件没有任何server config，构建500错误响应
+    {
+      ServerConfig defaultServer;
+      _response.BuildError(500, defaultServer);
+      _state = STATE_SENDING;
+      return;
+    }
+  }
+
+  _request.setMaxBodySize(server->clientMaxBody);
+
+  const LocationConfig* location = server->findLocation(_request.getPath());
+  if (!location)
+  {
+    _response.buildError(404, *server); // 如果没有匹配的location config，构建404错误响应
+    _state = STATE_SENDING;
+    return;
+  }
+
+  std::string resolvePath = Router::resolvePath(_request.getPath(), *location); // 根据location config的root和index以及请求的URI，解析出要访问的文件路径
+  if (Router::isCGI(*location, resolvePath))
+  {
+    _cgi = new CGI();
+    if (!_cgi->execute(_request, *location, *server, resolvePath))
+    {
+      delete _cgi;
+      _cgi = NULL;
+      _reponse.buildError(500, *server); // 如果CGI执行失败，构建500错误响应
+      _state = STATE_SENDING;
+      return;
+    }
+    _cgi->setBody(_request.getBody());
+    _matchedServer = server;
+    _state = STATE_CGI_RUNNING;
+    return ;
+  }
+  _reponse.build(_request, *server, *location);
+  _state = STATE_SENDING;
 }
