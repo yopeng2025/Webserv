@@ -235,10 +235,11 @@ void    Server::_addPollFd(int fd, short event)
 
 bool	setNonBlocking(int clientFd)
 {
-	// 查看并修改fd属性 设置non-blocking模式
+	// 查看clientFd原本的flag 
 	int flag = fcntl(clientFd, F_GETFL, 0);
 	if (flag == -1)
 		return (false);
+	// 设置non-blocking模式： 将原本的flag和O_NONBLOCK进行位或运算，得到新的flag，并设置回clientFd
 	if (fcntl(clientFd, F_SETFL, flag | O_NONBLOCK) == -1)
 		return (false);
 	return (true);

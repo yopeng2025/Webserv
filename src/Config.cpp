@@ -15,7 +15,7 @@ LocationConfig::LocationConfig():
 
 // ─── ServerConfig ────────────────────────────────────────────────────────────
 
-ServerConfig::ServerConfig():
+ServerConfig::ServerConfig():                                                       // ？？？ 这里是不是应该8080？？？因为是开发环境，生产环境应该是80？ 但是如果是80的话 就需要root权限了，所以默认8080比较合适
     host("0.0.0.0"), port(80), clientMaxBody(1024 * 1024) {}  // default 1MB (= 1024KB; 1KB = 1024 bytes)
 
 // GET /images/logo.png HTTP/1.1
