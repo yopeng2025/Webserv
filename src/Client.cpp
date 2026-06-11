@@ -1,16 +1,16 @@
 # include "Client.hpp"
 
 Client::Client(int fd, ListenSocket* ls)
-    : _fd(fd),
-      _listen(ls), 
-      _server(NULL), 
-      _state(STATE_READING),
-      _request().setMaxBodySize(maxBodySize),
-      _response(),
-      _cgi(NULL),
-      _sendOffset(0),
-      _matchedServer(NULL)
-      _lastActivity(time(NULL)) {}
+	: _fd(fd),
+		_listen(ls), 
+		_server(NULL), 
+		_state(STATE_READING),
+		_request(ls),
+		_response(),
+		_cgi(NULL),
+		_sendOffset(0),
+		_matchedServer(NULL)
+		_lastActivity(time(NULL)) {}
 
 Client::~Client()
 {
@@ -61,7 +61,7 @@ bool Client::readData()
     // 4. 解析请求失败，构建错误响应
     if (_request.getState() == Request::PARSE_ERROR)
     {
-      ServerConfig deaultServerConfig;
+      ServerConfig defaultServerConfig;
       _response.BuildError(_request.getErrorCode(), defaultServerConfig);
       _state = STATE_SENDING;
     }
