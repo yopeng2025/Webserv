@@ -16,7 +16,7 @@
 
 
 // c header files
-# include <unistd.h>
+# include <unistd.h>            // read(), write(), close(), getcwd()
 # include <poll.h>              // poll()
 # include <signal.h>            // signal()
 # include <sys/socket.h>        // socket(), bind(), listen(), accept()
@@ -25,7 +25,7 @@
 # include <netinet/in.h>        // sockaddr_in, htons(), INADDR_ANY 
 # include <arpa/inet.h>         // inet_addr()
 # include <netdb.h>             // addrinfo(), getaddrinfo()   
-# include <unistd.h>
+
 // marcos
 # define DEFAULT_CONFIG "config/default.conf"
 # define CLIENT_TIMEOUT 60      // seconds

@@ -50,8 +50,8 @@ int main(int argc, char** argv)
     //         }
     //     }
 
-        // Server server(config);
-        // server.run();
+        Server server(config);
+        server.run();
     }
     catch(const std::exception& e)
     {
