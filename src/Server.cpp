@@ -410,12 +410,12 @@ void	Server::_handlePollEvent()
 				if (fd == cgi->getOutputFd())
 				{
 					// 不管是读还是挂断 都去读完然后看是否finish
-					if (revent & POLLIN || revent & POLLHUP)
+					if (revents & POLLIN || revents & POLLHUP)
 						_handleCGIRead(it->first);
 				}
 				else if (fd == cgi->getInputFd())
 				{
-					if (revent & POLLOUT)
+					if (revents & POLLOUT)
 						_handleCGIWrite(it->first);
 				}
 				isCGI = true;
@@ -425,19 +425,19 @@ void	Server::_handlePollEvent()
 			continue ;
 
 		// 3. 检查是否有错误、挂断或无效等 并清除client
-		if (revent & (POLLERR | POLLHUP | POLLNVAL))
+		if (revents & (POLLERR | POLLHUP | POLLNVAL))
 		{
 			_removeClient(fd);
 			continue ;
 		}
 
 		// 4. Client Socket的读和写 (前面已经处理好listen和CGI pipe，所以剩下的就是client socket)
-		if (revent & POLLIN)
+		if (revents & POLLIN)
 			_handleClientRead(fd);
 			//检查 client是否还存在
 		if (_clients.find(fd) == _clients.end())
 			continue ;
-		if (revent & POLLOUT)
+		if (revents & POLLOUT)
 			_handleClientWrite(fd);
 	}
 }

@@ -153,7 +153,7 @@ void Client::process(const Config& config)
     {
       delete _cgi;
       _cgi = NULL;
-      _reponse.buildError(500, *server); // 如果CGI执行失败，构建500错误响应
+      _response.buildError(500, *server); // 如果CGI执行失败，构建500错误响应
       _state = STATE_SENDING;
       return;
     }
@@ -162,6 +162,6 @@ void Client::process(const Config& config)
     _state = STATE_CGI_RUNNING;
     return ;
   }
-  _reponse.build(_request, *server, *location);
+  _response.build(_request, *server, *location);
   _state = STATE_SENDING;
 }
