@@ -378,19 +378,21 @@ void	Server::_handlePollEvent()
 {
 	for (size_t i = 0; i < _pollfds.size(); ++i)
 	{
-		// 判断是那个socket的事件
-		int socket = _pollfds[i].fd;
-		short revent = _pollfds[i].revents;
+		if (_pollfds[i].revents == 0)
+			continue ;
+
+		int fd = _pollfds[i].fd;
+		short revents = _pollfds[i].revents;
 
 		// 1. 看是不是Listen socket有新的连接
 		bool isListen = false;
 		for (std::map<int, ListenSocket*>::iterator it = _listenSocket.begin(); it != _listenSocket.end(); ++it)
 		{
-			int fd = it->first;
-			if (socket == fd && (revent & POLLIN))		// bitwise AND
+			int listen_fd = it->first;
+			if (fd == listen_fd && (revents & POLLIN))		// bitwise AND
 			{
 				// 新建连接之后，会在_client里新建client对象 并且在pollfd里添加这个client的fd和POLLIN事件
-				_acceptConnection(socket);
+				_acceptConnection(fd);
 				isListen = true;
 				break ;
 			}
@@ -405,19 +407,18 @@ void	Server::_handlePollEvent()
 			CGI* cgi = it->second->getCGI();
 			if (cgi)
 			{
-				if (socket == cgi->getOutputFd())
+				if (fd == cgi->getOutputFd())
 				{
 					// 不管是读还是挂断 都去读完然后看是否finish
 					if (revent & POLLIN || revent & POLLHUP)
 						_handleCGIRead(it->first);
 				}
-				else if (socket == cgi->getInputFd())
+				else if (fd == cgi->getInputFd())
 				{
 					if (revent & POLLOUT)
 						_handleCGIWrite(it->first);
 				}
-				isCGI = true;							//？？？ 这个判断是否要放在handleCGIRead/Write里？ 还是说只要这个socket是CGI的输入输出管道 就不处理client的读写事件了？
-														//（因为CGI的输入输出管道和client的读写事件是分开的） 目前放在外面 只要这个socket是CGI的输入输出管道 就不处理client的读写事件了
+				isCGI = true;
 			}
 		}
 		if (isCGI)
@@ -426,18 +427,18 @@ void	Server::_handlePollEvent()
 		// 3. 检查是否有错误、挂断或无效等 并清除client
 		if (revent & (POLLERR | POLLHUP | POLLNVAL))
 		{
-			_removeClient(socket);
+			_removeClient(fd);
 			continue ;
 		}
 
 		// 4. Client Socket的读和写 (前面已经处理好listen和CGI pipe，所以剩下的就是client socket)
 		if (revent & POLLIN)
-			_handleClientRead(socket);
+			_handleClientRead(fd);
 			//检查 client是否还存在
-		if (_clients.find(socket) == _clients.end())
+		if (_clients.find(fd) == _clients.end())
 			continue ;
 		if (revent & POLLOUT)
-			_handleClientWrite(socket);
+			_handleClientWrite(fd);
 	}
 }
 
@@ -454,7 +455,7 @@ void	Server::_processClient()
 			if (cgi)
 			{
 				if (cgi->getInputFd() >= 0)
-					_addPollFd(cgi->getInputFd(), POLLOUT);
+					_addPollFd(cgi->getInputFd(), POLLOUT); //修改CGIfd的event为POLLIN
 				if (cgi->getOutputFd() >= 0)
 					_addPollFd(cgi->getOutputFd(), POLLIN);
 			}
@@ -524,7 +525,7 @@ void	Server::_pollLoop()
 		// int poll(struct pollfd *fds, nfds_t nfds, int timeout)
 		// 1. pollfds -> kernel
 		// 2. kernel monitors events on these fds (listen sockets / client sockets / CGI pipes)
-		// 3. pollfds.revents = POLLIN/POLLOUT/POLLERR/POLLHUP/POLLNVAL
+		// 3. pollfds.revents = POLLIN/POLLOUT/POLLERR/POLLHUP/POLLNVAL （处理完的listensocket会变回0）
 		// returns how many fds are ready for the requested
         // -1 error; 0 timeout; >0 number of fds with events
 		int	ready = poll(&_pollfds[0], _pollfds.size(), 1000);
