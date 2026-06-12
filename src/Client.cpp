@@ -44,7 +44,7 @@ bool Client::readData()
 {
   char buffer[BUFFER_SIZE];
   
-  // 1. 从socket读取数据到缓冲区
+  // 1. 从clicent socket读取数据（HTTP请求的原始文本数据）到缓冲区 （GET /index.html HTTP/1.1\r\n Host: localhost:8080 ...）
   // = 0 client closed connection, < 0 error occurred, > 0 bytes read successfully
   ssize_t bytesRead = recv(_fd, buffer, sizeof(buffer), 0);
   if (bytesRead <= 0)
@@ -121,7 +121,7 @@ void Client::process(const Config& config)
   if (colon_index != std::string::npos)
     host = hostHeader.substr(0, colon_index); //example.com
   
-  const ServerConfig* server = config.findServer(host, _port); 
+  const ServerConfig* server = config.findServer(host, _listen->port); 
   if (!server)
   {
     if (!config.getServers().empty())    // 如果没有匹配的server config，使用配置中的第一个server config作为默认
