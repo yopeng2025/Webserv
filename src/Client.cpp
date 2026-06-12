@@ -9,7 +9,7 @@ Client::Client(int fd, ListenSocket* ls)
 		_response(),
 		_cgi(NULL),
 		_sendOffset(0),
-		_matchedServer(NULL)
+		_matchedServer(NULL),
 		_lastActivity(time(NULL)) {}
 
 Client::~Client()
@@ -92,7 +92,7 @@ bool Client::sendData()
   // data.c_str() + _sendOffset: 发送数据的起始位置
   // remainData: 还需要发送的数据长度
   // send() returns the number of bytes actually sent, which may be less than remainData
-  ssize_t bytesSent = send(_fd, data.c_str() + _sendOffset, remianData, 0);
+  ssize_t bytesSent = send(_fd, data.c_str() + _sendOffset, remainData, 0);
   if (bytesSent <= 0)
     return false;
   
@@ -121,7 +121,7 @@ void Client::process(const Config& config)
   if (colon_index != std::string::npos)
     host = hostHeader.substr(0, colon_index); //example.com
   
-  const ServerConfig* server = config.findServer(host, _port); 
+  const ServerConfig* server = config.findServer(host, _listen->port); 
   if (!server)
   {
     if (!config.getServers().empty())    // 如果没有匹配的server config，使用配置中的第一个server config作为默认
