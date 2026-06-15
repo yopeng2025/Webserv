@@ -14,7 +14,7 @@ struct LocationConfig
     int                         redirectCode;
     std::string                 uploadPath;
     std::string                 cgiExtension;   // ".py"
-    std::string                 cgiPath;        // "usr/bin/python3"
+    std::string                 cgiPath;        // "usr/bin/python3" 
 
     LocationConfig();
 };

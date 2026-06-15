@@ -12,14 +12,23 @@ class CGI
 		~CGI();
 
 		bool	execute(const Request& request, const LocationConfig& location,
-						const ServerConfig& server, const std::string& resolvePath);
+						const ServerConfig& server, const std::string& scriptPath);
 
-		int		getOutputFd();
-		int		getInputFd();
+		int		getOutputFd() const;
+		int		getInputFd() const;
+		pid_t	getPid() const;
 	
 	private:
+		pid_t	_pid;
 		int		_inputFd;
 		int		_outputFd;
+		time_t	_startTime;
+		bool	_done;
+		bool	_bodyWriten;
+
+		std::vector<std::string>	_buildEnvironment(const Request& request,
+													  const ServerConfig& server,
+													  const std::string& absoluteScriptPath);
 
 		CGI(const CGI&);
 		CGI& operator=(const CGI&);

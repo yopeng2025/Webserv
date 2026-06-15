@@ -1,36 +1,173 @@
 #include "CGI.hpp"
 
-CGI::CGI(/* args */)
-{
-}
+CGI::CGI(): _pid(-1), _startTime(0), _done(false), _bodyWriten(false),
+			_inputFd(-1), _outputFd(-1) {}
 
 CGI::~CGI()
 {
 }
 
 bool CGI::execute(const Request& request, const LocationConfig& location,
-					const ServerConfig& server, const std::string& resolvePath)
+					const ServerConfig& server, const std::string& scriptPath)
 {
-	std::string absolutePath = resolvePath;
-	if (!resolvePath.empty() && resolvePath[0] != '/')
+	// current working directory
+	// 4096: common maximum path length in Linux
+	// /home/login/webserv + / +  cgi-bin/script.py -> /home/login/webserv/cgi-bin/script.py
+	std::string absoluteScriptPath = scriptPath;
+	if (!scriptPath.empty() && scriptPath[0] != '/')
 	{
-		// current working directory
-		// 4096: common maximum path length in Linux
-		// /home/login/webserv + / +  cgi-bin/script.py -> /home/login/webserv/cgi-bin/script.py
 		char cwd[4096];
 		if (getcwd(cwd, sizeof(cwd)) != 0)
-		    absolutePath = std::string(cwd) + "/" + resolvePath;
+		    absoluteScriptPath = std::string(cwd) + "/" + scriptPath;
 	}
 
-	
+	// Unix pipe() 单向通信机制，父进程和子进程之间通过管道进行数据传输
+	// pipefd[1] 管道的写端 | pipefd[0] 管道的读端
+
+	// CGI：父进程和子进程之间的双向通信（full duplex）
+	// 父进程写入数据，子进程从管道读取数据 inputPipe[1]父 -> inputPipe[0]子
+	// 子进程写入数据，父进程从管道读取数据 outputPipe[1]子 -> outputPipe[0]父
+	// 父（写） -> |子（读-写）| -> 父（读）
+	int inputPipe[2];  
+	int outputPipe[2];
+
+	if (pipe(inputPipe) < 0)
+	{
+		LOG_ERROR("CGI: Failed to create input pipe");
+		return false;
+	}
+	if (pipe(outputPipe) < 0)
+	{
+		LOG_ERROR("CGI: Failed to create output pipe");
+		close(inputPipe[1]);
+		close(inputPipe[0]);
+		return false;
+	}
+	// fork() -1 fail, 0 child, >0 parent
+	_pid = fork();
+	if (_pid < 0)
+	{
+		LOG_ERROR("CGI: Failed to fork process");
+		close(inputPipe[1]);
+		close(inputPipe[0]);
+		close(outputPipe[1]);
+		close(outputPipe[0]);
+		return false;
+	}
+	// 子进程 child process
+	else if (_pid == 0) 
+	{
+		// 关闭父进程的写端和读端
+		close(inputPipe[1]);
+		close(outputPipe[0]);
+
+		// dup2(oldfd, newfd);
+		dup2(inputPipe[0], STDIN_FILENO);
+		dup2(outputPipe[1], STDOUT_FILENO);
+
+		// close(oldfd)
+		close(inputPipe[0]);
+		close(outputPipe[1]);
+
+		// Build Environment
+		// env = ["pwd=/home/login/webserv", "REQUEST_METHOD=GET", ...]
+		// envptr = ["pwd=/home/login/webserv", "REQUEST_METHOD=GET", ... , NULL]
+		std::vector<std::string> env = _buildEnvironment(request, server, absoluteScriptPath);
+		std::vector<char*> envptr;
+		for (size_t i = 0; i < env.size(); i++)
+			// std::string -> char* -> const char*
+			envptr.push_back(const_cast<char*>(env[i].c_str()));
+		envptr.push_back(NULL);
+		
+		// change directory to the script's directory
+		std::string scriptDir = absoluteScriptPath;
+		size_t lastSlash = scriptDir.rfind('/');
+		if (lastSlash != std::string::npos)
+		{
+			scriptDir = scriptDir.substr(0, lastSlash);
+			chdir(scriptDir.c_str());
+		}
+
+		// Execute CGI
+		if (location.cgiPath.empty())
+			_exit(1);
+		std::string cgiPath = location.cgiPath;
+		char *argv[3];
+		argv[0] = const_cast<char*>(cgiPath.c_str());
+		argv[1] = const_cast<char*>(absoluteScriptPath.c_str());
+		argv[2] = NULL;
+		
+		execve(cgiPath.c_str(), argv, envptr.data());
+		std::cerr << "CGI: Failed to execute CGI script" << std::endl;
+		_exit(1);
+	}
+	// 父进程 parent process
+	else
+	{
+		close(inputPipe[0]);
+		close(outputPipe[1]);
+
+		_inputFd = inputPipe[1];
+		_outputFd = outputPipe[0];
+
+		if (fcntl(inputPipe[1], F_SETFL, O_NONBLOCK) < 0 || \
+			fcntl(outputPipe[0], F_SETFL, O_NONBLOCK) < 0)
+		{
+			LOG_ERROR("CGI: Failed to set input pipe non-blocking");
+			close(inputPipe[1]);
+			close(outputPipe[0]);					// 还不确定是否需要直接close
+			return false;							// 原本没有return false， 直接return true
+		}
+	}
+	_startTime = time(NULL);
+	_done = false;
+	_bodyWriten = false;
+	return true;
 }
 
-int CGI::getInputFd()
+std::vector<std::string> CGI::_buildEnvironment(const Request& request,
+												const ServerConfig& server,
+												const std::string& absolutePath)
 {
-	return (_inputFd);
+	std::vector<std::string> env;
+
+	env.push_back("REQUEST_METHOD=" + request.getMethod());
+	env.push_back("QUERY_STRING=" + request.getQuery());
+	env.push_back("CONTENT_TYPE=" + request.getHeader("Content-Type"));
+	env.push_back("CONTENT_LENGTH=" + request.getHeader("Content-Length"));
+	env.push_back("SCRIPT_NAME=" + request.getPath());
+	env.push_back("SCRIPT_FILENAME=" + absolutePath);
+	env.push_back("PATH_INFO=" + request.getPath());
+	env.push_back("PATH_TRANSLATED=" + absolutePath);
+	env.push_back("SERVER_NAME=" + server.host);
+	env.push_back("SERVER_PORT=" + Utils::toString(server.port));
+	env.push_back("SERVER_PROTOCOL=http/1.1");
+	env.push_back("SERVER_SOFTWARE=" + std::string(SERVER_NAME));
+	env.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	env.push_back("REDIRECT_STATUS=200");
+
+	const std::map<std::string, std::string>& headers = request.getHeaders();
+
+	// HTTP headers
+	// User-agent -> HTTP_USER_AGENT
+	for (std::map<std::string, std::string>::const_iterator it = headers.begin();
+		 it != headers.end();
+		 it++)
+	{
+		std::string envName = "HTTP_" + Utils::toUpper(it->first);
+		for (size_t i = 0; i < envName.size(); i++)
+		{
+			if (envName[i] == '-')
+				envName[i] = '_';
+		}
+		env.push_back(envName + "=" + it->second);
+	}
+	return env;
 }
 
-int CGI::getOutputFd()
-{
-	return (_outputFd);
-}
+int CGI::getInputFd() const {return (_inputFd);}
+
+int CGI::getOutputFd() const {return (_outputFd);}
+
+pid_t CGI::getPid() const {return (_pid);}
+

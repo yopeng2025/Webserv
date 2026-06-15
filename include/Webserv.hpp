@@ -30,6 +30,7 @@
 # define DEFAULT_CONFIG "config/default.conf"
 # define CLIENT_TIMEOUT 60      // seconds
 # define BUFFER_SIZE 4096       // 1KB = 1024 bytes 4KB = 4096 bytes
+#define  SERVER_NAME "Webserv/1.0"
 
 # define LOG_INFO(msg) std::cout << "[INFO] " << msg << std::endl;
 # define LOG_ERROR(msg) std::cerr << "[ERROR] " << msg << std::endl;
