@@ -11,20 +11,36 @@ class CGI
 		CGI();
 		~CGI();
 
-		bool	execute(const Request& request, const LocationConfig& location,
-						const ServerConfig& server, const std::string& scriptPath);
+		bool		execute(const Request& request, const LocationConfig& location,
+							const ServerConfig& server, const std::string& scriptPath);
 
-		int		getOutputFd() const;
-		int		getInputFd() const;
-		pid_t	getPid() const;
-	
+		int			getOutputFd() const;
+		int			getInputFd() const;
+		const std::string&	getOutput() const;
+		pid_t		getPid() const;
+		time_t  	getStartTime() const;
+		bool		isDone() const;
+		bool		checkTimeout();
+		bool		readOutput();
+		bool		isBodyWritten() const;
+
+		void    	closeFds();
+		void		reapChild();
+		void		kill_process();
+		void		setBody(const std::string& body);
+		bool		writeBody();
+		
 	private:
-		pid_t	_pid;
-		int		_inputFd;
-		int		_outputFd;
-		time_t	_startTime;
-		bool	_done;
-		bool	_bodyWriten;
+		pid_t		_pid;
+		int			_inputFd;
+		int			_outputFd;
+		time_t		_startTime;
+		bool		_done;
+		bool		_bodyWritten;
+		std::string _bodyToWrite;
+		size_t  	_bodyWriteOffset;
+		std::string _output;
+		
 
 		std::vector<std::string>	_buildEnvironment(const Request& request,
 													  const ServerConfig& server,

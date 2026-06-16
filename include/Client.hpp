@@ -31,6 +31,7 @@ class Client
 		bool	readData();
 		bool	sendData();
 		void	process(const Config& config);
+		void	finalizeCGI();
 
 	private:
 		int						_fd;

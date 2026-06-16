@@ -1,10 +1,31 @@
 #include "CGI.hpp"
+#include "Utils.hpp"
 
-CGI::CGI(): _pid(-1), _startTime(0), _done(false), _bodyWriten(false),
-			_inputFd(-1), _outputFd(-1) {}
+CGI::CGI(): _pid(-1), _startTime(0), _done(false), _bodyWritten(false),
+			_inputFd(-1), _outputFd(-1), _bodyWriteOffset(0) {}
 
 CGI::~CGI()
 {
+	closeFds();
+	if (_pid > 0)
+	{
+		kill(_pid, SIGKILL);
+		waitpid(_pid, NULL, 0);
+	}
+}
+
+void CGI::closeFds()
+{
+	if (_inputFd >= 0)
+	{
+		close(_inputFd);
+		_inputFd = -1;
+	}
+	if (_outputFd >= 0)
+	{
+		close(_outputFd);
+		_outputFd = -1;
+	}
 }
 
 bool CGI::execute(const Request& request, const LocationConfig& location,
@@ -90,7 +111,7 @@ bool CGI::execute(const Request& request, const LocationConfig& location,
 
 		// Execute CGI
 		if (location.cgiPath.empty())
-			_exit(1);
+			_exit(1);							// exit child process & return 1 to parent process
 		std::string cgiPath = location.cgiPath;
 		char *argv[3];
 		argv[0] = const_cast<char*>(cgiPath.c_str());
@@ -110,41 +131,43 @@ bool CGI::execute(const Request& request, const LocationConfig& location,
 		_inputFd = inputPipe[1];
 		_outputFd = outputPipe[0];
 
-		if (fcntl(inputPipe[1], F_SETFL, O_NONBLOCK) < 0 || \
-			fcntl(outputPipe[0], F_SETFL, O_NONBLOCK) < 0)
+		int flag1 = fcntl(_inputFd, F_GETFL);
+		int flag2 = fcntl(_outputFd, F_GETFL);
+		if (fcntl(inputPipe[1], F_SETFL, flag1 | O_NONBLOCK) < 0 || \
+			fcntl(outputPipe[0], F_SETFL, flag2 | O_NONBLOCK) < 0)
 		{
 			LOG_ERROR("CGI: Failed to set input pipe non-blocking");
-			close(inputPipe[1]);
-			close(outputPipe[0]);					// 还不确定是否需要直接close
-			return false;							// 原本没有return false， 直接return true
+			// closeFds();
+			// return false; // ！！！原本没有return false， 会导致non-blocking设置失败时，仍然继续执行，后面的读写操作阻塞
 		}
 	}
 	_startTime = time(NULL);
 	_done = false;
-	_bodyWriten = false;
+	_bodyWritten = false;
 	return true;
 }
 
 std::vector<std::string> CGI::_buildEnvironment(const Request& request,
 												const ServerConfig& server,
-												const std::string& absolutePath)
+												const std::string& absoluteScriptPath)
 {
 	std::vector<std::string> env;
 
+	// 将request请求的相关信息和服务器配置提取出来， 写入CGI需要的环境变量
 	env.push_back("REQUEST_METHOD=" + request.getMethod());
 	env.push_back("QUERY_STRING=" + request.getQuery());
 	env.push_back("CONTENT_TYPE=" + request.getHeader("Content-Type"));
 	env.push_back("CONTENT_LENGTH=" + request.getHeader("Content-Length"));
 	env.push_back("SCRIPT_NAME=" + request.getPath());
-	env.push_back("SCRIPT_FILENAME=" + absolutePath);
+	env.push_back("SCRIPT_FILENAME=" + absoluteScriptPath);
 	env.push_back("PATH_INFO=" + request.getPath());
-	env.push_back("PATH_TRANSLATED=" + absolutePath);
+	env.push_back("PATH_TRANSLATED=" + absoluteScriptPath);
 	env.push_back("SERVER_NAME=" + server.host);
 	env.push_back("SERVER_PORT=" + Utils::toString(server.port));
-	env.push_back("SERVER_PROTOCOL=http/1.1");
+	env.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	env.push_back("SERVER_SOFTWARE=" + std::string(SERVER_NAME));
 	env.push_back("GATEWAY_INTERFACE=CGI/1.1");
-	env.push_back("REDIRECT_STATUS=200");
+	env.push_back("REDIRECT_STATUS=200");	// 200 = OK
 
 	const std::map<std::string, std::string>& headers = request.getHeaders();
 
@@ -169,5 +192,140 @@ int CGI::getInputFd() const {return (_inputFd);}
 
 int CGI::getOutputFd() const {return (_outputFd);}
 
+const std::string& CGI::getOutput() const {return (_output);}
+
 pid_t CGI::getPid() const {return (_pid);}
 
+time_t CGI::getStartTime() const {return _startTime;}
+
+bool CGI::isDone() const {return _done;}
+
+bool CGI::isBodyWritten() const {return _bodyWritten;}
+
+bool CGI::checkTimeout()
+{
+	if (_done)
+		return false;
+	time_t currentTime = time(NULL);
+	return (currentTime - _startTime >= CGI_TIMEOUT);
+}
+
+void CGI::reapChild()
+{
+	if (_pid <= 0)
+		return ;
+	// WNOHANG： Wait NO HANG - non-blocking wait, return immediately if no child has died
+	int status;
+	pid_t result = waitpid(_pid, &status, WNOHANG); // >0: child exited, 0: child still running, -1: error
+	if (result > 0)
+		_pid = -1;
+	return ;
+}
+
+void CGI::kill_process()
+{
+	if (_pid > 0)
+	{
+		kill(_pid, SIGKILL);
+		int status;
+		waitpid(_pid, &status, 0);
+		if (WIFEXITED(status))
+		{
+			int exit_code = WEXITSTATUS(status);
+			LOG_INFO("CGI process " << _pid << " exited with code " << exit_code);
+		}
+		_pid = 0;
+	}
+	closeFds();
+	_done = true;
+}
+
+bool CGI::readOutput()
+{
+	if (_outputFd < 0) // no output fd to read from / CGI process not started
+		return true;
+	
+	char buffer[BUFFER_SIZE];
+	ssize_t bytesRead = read(_outputFd, buffer, sizeof(buffer));
+	if (bytesRead > 0)
+	{
+		_output.append(buffer, bytesRead);
+		return false;		//还没读完，还要继续读
+	}
+	if (bytesRead == 0) //EOF
+	{
+		 close(_outputFd);
+		 _outputFd = -1; 
+		 reapChild();
+		 _done = true;
+		 return true;
+	}
+	if (bytesRead < 0)
+	{
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
+			return false; // No data available now, try again later
+		else
+		{
+			LOG_ERROR("CGI: Error reading output pipe");
+			close(_outputFd);
+			_outputFd = -1;
+			_done = true;
+			return true; // Treat as done on error
+		}
+	}
+	return false; // bytesRead < 0, error occurred, but not EOF
+}
+
+void	CGI::setBody(const std::string& body)
+{
+	_bodyWriteOffset = 0;
+	_bodyToWrite = body;
+	if (body.empty())
+	{
+		close(_inputFd);
+		_inputFd = -1;
+		_bodyWritten = true; // No body to write, mark as done
+	}
+}
+
+bool CGI::writeBody()
+{
+	if (_bodyWritten || _inputFd < 0)
+		return true; // Already written or no input fd to write to
+
+	size_t bytesToWrite = _bodyToWrite.size() - _bodyWriteOffset;
+	if (bytesToWrite == 0)
+	{
+		close(_inputFd);
+		_inputFd = -1;
+		_bodyWritten = true; // All body written, mark as done
+		return true;
+	}
+
+	ssize_t bytesWritten = write(_inputFd, _bodyToWrite.c_str() + _bodyWriteOffset, bytesToWrite);
+	if (bytesWritten > 0)
+	{
+		_bodyWriteOffset += bytesWritten;
+		if (_bodyWriteOffset >= _bodyToWrite.size())
+		{
+			close(_inputFd);
+			_inputFd = -1;
+			_bodyWritten = true; // All body written, mark as done
+			return true;
+		}
+		return false; // Not all body written yet, need to write more
+	}
+	if (bytesWritten <= 0)
+	{
+		// If write fails, check if it's due to EAGAIN or EWOULDBLOCK (non-blocking write would block)
+		// EAGAIN: Error， will try AGAIN later
+		// EWOULDBLOCK: Error, WOULD BLOCK
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
+			return false;
+		close(_inputFd);
+		_inputFd = -1;
+		_bodyWritten = true; // Error occurred, mark as done to prevent further
+		return true;
+	}
+	return false; // 逻辑上不可达，但能消除警告
+}

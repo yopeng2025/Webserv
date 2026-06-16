@@ -25,11 +25,13 @@
 # include <netinet/in.h>        // sockaddr_in, htons(), INADDR_ANY 
 # include <arpa/inet.h>         // inet_addr()
 # include <netdb.h>             // addrinfo(), getaddrinfo()   
+# include <sys/wait.h>          // waitpid()
 
 // marcos
 # define DEFAULT_CONFIG "config/default.conf"
 # define CLIENT_TIMEOUT 60      // seconds
-# define BUFFER_SIZE 4096       // 1KB = 1024 bytes 4KB = 4096 bytes
+# define CGI_TIMEOUT    10      
+# define BUFFER_SIZE    4096    // 1KB = 1024 bytes 4KB = 4096 bytes
 #define  SERVER_NAME "Webserv/1.0"
 
 # define LOG_INFO(msg) std::cout << "[INFO] " << msg << std::endl;

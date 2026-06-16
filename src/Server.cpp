@@ -481,7 +481,7 @@ void	Server::_checkCGI()
 					_removePollFd(cgi->getOutputFd());
 				if (cgi->getInputFd() >= 0)
 					_removePollFd(cgi->getInputFd());
-				cgi->kill();
+				cgi->kill_process();
 				c->finalizeCGI();
 			}
 		}
