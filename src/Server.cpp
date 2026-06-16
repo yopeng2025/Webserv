@@ -304,29 +304,31 @@ void	Server::_acceptConnection(int listenFd)
 	_addPollFd(clientFd, POLLIN);
 }
 
-void	Server::_handleCGIRead(int fd)
-{
-	std::map<int, Client*>::iterator it = _clients.find(fd);
-	Client* c = it->second;
-	CGI* cgi = c->getCGI();
-	if (cgi)
-	{
-		bool done = cgi->readOutput();
-		if (done)
-			_removePollFd(cgi->getOutputFd());
+void Server::_handleCGIRead(int fd) {
+	for (std::map<int, Client*>::iterator it = _clients.begin();
+		 it != _clients.end(); ++it) {
+		CGI* cgi = it->second->getCGI();
+		if (cgi && cgi->getOutputFd() == fd) {
+			bool done = cgi->readOutput();
+			if (done) {
+				_removePollFd(fd);
+			}
+			return;
+		}
 	}
 }
 
-void	Server::_handleCGIWrite(int fd)
-{
-	std::map<int, Client*>::iterator it = _clients.find(fd);
-	Client* c = it->second;
-	CGI* cgi = c->getCGI();
-	if (cgi)
-	{
-		bool done = cgi->readIntput();
-		if (done)
-			_removePollFd(cgi->getInputFd());
+void Server::_handleCGIWrite(int fd) {
+	for (std::map<int, Client*>::iterator it = _clients.begin();
+		 it != _clients.end(); ++it) {
+		CGI* cgi = it->second->getCGI();
+		if (cgi && cgi->getInputFd() == fd) {
+			bool done = cgi->writeBody();
+			if (done) {
+				_removePollFd(fd);
+			}
+			return;
+		}
 	}
 }
 
