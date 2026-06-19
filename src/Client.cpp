@@ -58,17 +58,20 @@ bool Client::readData()
   bool isComplete = _request.feed(data);
   if (isComplete)
   {
-    // 4. 解析请求失败，构建错误响应
+    // 4. 解析请求失败，构建错误响应 ❗错误响应之后应该关闭该客户连接
     if (_request.getState() == Request::PARSE_ERROR)
     {
       ServerConfig defaultServerConfig;
       _response.BuildError(_request.getErrorCode(), defaultServerConfig);
       _state = STATE_SENDING;
     }
-    else
-     _state = STATE_PROCESSING;
-  }
-  return true;
+	else
+	{
+		_state = STATE_PROCESSING;
+			// ❗更新_request
+		_request.reset();
+	}
+	return true;
 }
 
 bool Client::sendData()
@@ -135,7 +138,7 @@ void Client::process(const Config& config)
     }
   }
 
-  _request.setMaxBodySize(server->clientMaxBody);
+  // _request.setMaxBodySize(server->clientMaxBody); // 重复 可以删掉
 
   const LocationConfig* location = server->findLocation(_request.getPath());
   if (!location)

@@ -193,7 +193,9 @@ void Config::_parseServer()
                 multiplier = 1;
             else
                 throw std::runtime_error("Invalid client_max_body_size value: " + size);
-            size_t sizeNum = Utils::toSizeT(size);
+            size_t sizeNum;
+            if (!Utils::toSizeT(size, sizeNum))
+                throw std::runtime_error("Invalide size_t value: " + size);
             if (sizeNum > std::numeric_limits<size_t>::max() / multiplier)
                 throw std::runtime_error("client_max_body_size value is too large: " + size);
             server.clientMaxBody = sizeNum * multiplier;
@@ -203,7 +205,9 @@ void Config::_parseServer()
         {
             std::string code = _nextToken();
             std::string path = _nextToken();
-            int codeInt = Utils::toInt(code);
+            int codeInt;
+            if (!Utils::toInt(code, codeInt))
+                throw std::runtime_error("Invalid integer value: " + code);
             server.errorPages[codeInt] = path;
             _expectToken(";");
         }
@@ -230,7 +234,10 @@ void Config::_parseListen(ServerConfig& server,const std::string& value)
     if (colon != std::string::npos)             // If a colon is found, split the value into host and port
     {
         server.host = value.substr(0, colon);                   // 127.0.0.1
-        server.port = Utils::toInt(value.substr(colon + 1));    // 8080
+        int tmp;
+        if (Utils::toInt(value.substr(colon + 1), tmp))    // 8080
+            throw std::runtime_error("Invalid integer value: " + value.substr(colon + 1));
+        server.port = tmp;
     }
     else                                        // If no colon is found, treat the entire value as the port and use the default host
     {
@@ -244,7 +251,12 @@ void Config::_parseListen(ServerConfig& server,const std::string& value)
             }
         }
         if (isNumber)
-            server.port = Utils::toInt(value);    // 8080
+        {
+            int tmp;
+            if (!Utils::toInt(value, tmp))
+                throw std::runtime_error("Invalid integer value: " + value);
+            server.port = tmp;    // 8080
+        }
         else
             server.host = value;                  // "127.0.0.1" or "localhost"
     }
@@ -338,7 +350,9 @@ void Config::_parseLocation(ServerConfig& server)
         {
             std::string code = _nextToken();
             std::string url = _nextToken();
-            int codeInt = Utils::toInt(code);
+            int codeInt;
+            if(!Utils::toInt(code, codeInt))
+                throw std::runtime_error("Invalid integer value: " + code);
             if (codeInt < 300 || codeInt >= 400)
                 throw std::runtime_error("Invalid redirect code: " + code);
             location.redirectCode = codeInt;
