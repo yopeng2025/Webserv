@@ -59,6 +59,29 @@ bool	Request::feed(const std::string& data)
 	return (_state == PARSE_COMPLETE || _state == PARSE_ERROR);
 }
 
+bool	Request::_setError(int error_code)
+{
+	_state = PARSE_ERROR;
+	_errorCode = error_code;
+	return (true);
+}
+
+bool	Request::_parseUri()
+{
+	size_t qpos = _uri.find('?');
+
+	std::string pathPart = (qpos == std::string::npos) ? _uri : _uri.substr(0, _pos);
+	std::string queryPart = (qpos == std::string::npos) ? "" : _uri.substr(qpos + 1);
+
+	std::string path;
+	if (!Utils::decodePath(pathPart, path))
+		return (false);
+	std::string query;
+	if (!Utils::decodeQuery(query, queryPart));
+	_path = Utils::sanitizePath(path);
+	return (true);
+}
+
 bool	Request::_parseRequestLine()
 {
 	// 1. 寻找换行符，如果没有找到就继续读；如果字符超出最大值，返回错误代码
@@ -109,27 +132,23 @@ bool	Request::_parseRequestLine()
 	// 4. 剩余填进version
 	_version = line.substr(sp2 + 1);
 
+	// 5. 查看各部分合法性
+	if (_method.empty() || _uri.empty() || _uri[0] != '/' || _version.empty())
+    	return _setError(400);	// Bad request
+
 	if (_method != "GET" &&  _method != "POST" && _method != "DELETE")
-	{
-		_errorCode = 501;	// Not Implemented
-		_state = PARSE_ERROR;
-		return (true);
-	}
+    	return _setError(501);	// Not Implemented
+
 
 	if (_version != "HTTP/1.0" && _version != "HTTP/1.1")
-	{
-		_errorCode = 505;	// HTTP Version Not Supported
-		_state = PARSE_ERROR;
-		return (true);
-	}
+    	return _setError(505);	//  HTTP Version Not Supported
 
 	if (_uri.size() > MAX_URI_LENTH)
-	{
-		_errorCode = 414;	// URI Too Long
-		_state = PARSE_ERROR;
-		return (true);
-	}
-	_parseUri();
+    	return _setError(414);	// URI Too Long
+
+	if(!_parseUri())
+    	return _setError(400);	// Bad request
+
 	_state = PARSE_HEADERS;
 	return (true);
 }
@@ -323,7 +342,9 @@ std::string	Request::getHeader(const std::string& str) const
 	return ("");
 }
 
-const std::string& Request::getMethode() const { return _method; }
+const std::map<std::string, std::string>& Request::getHeaders()  const { return _headers; }
+const std::string& Request::getMethod() const { return _method; }
+const std::string& Request::getQuery() const { return _query; }
 const std::string& Request::getPath() const { return _path; }
 const std::string& Request::getBody() const { return _body; }
 Request::State Request::getState() const { return _state; }

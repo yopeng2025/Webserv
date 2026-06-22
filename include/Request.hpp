@@ -25,8 +25,9 @@ class Request
 		bool	feed(const std::string& data);
 		void	reset();
 
+		const std::map<std::string, std::string>& getHeaders() const;
 		std::string			getHeader(const std::string& str) const;
-		const std::string&	getMethode() const;
+		const std::string&	getMethod() const;
 		const std::string&	getPath() const;
 		const std::string&	getQuery() const;
 		const std::string&	getBody() const;
@@ -56,8 +57,9 @@ class Request
 		bool	_parseBody();
 		bool	_parseChunked();
 		bool	_parseTrailer();
-		void	_parseUri();
+		bool	_parseUri();
 		void	_getBodyType();
+		bool	_setError(int error_code);
 
 };
 
