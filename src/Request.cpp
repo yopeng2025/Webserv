@@ -89,20 +89,14 @@ bool	Request::_parseRequestLine()
 	if (end == std::string::npos)
 	{
 		if (_raw.size() > MAX_REQUEST_LINE)
-		{
-			_errorCode = 400;	//❗没有具体的错误码 放Bad request
-			_state = PARSE_ERROR;
-			return (true);
-		}
+    		return _setError(400);	// Bad request
+
 		// 没读到一整行 下次再读
 		return (false);
 	}
 	if (end - _pos + 1 > MAX_REQUEST_LINE)
-	{
-		_errorCode = 400;	// Bad request
-		_state = PARSE_ERROR;
-		return (true);
-	}
+    	return _setError(400);	// Bad request
+
 
 	// 拷贝这一行
 	std::string line = _raw.substr(_pos, end - _pos);
@@ -112,21 +106,15 @@ bool	Request::_parseRequestLine()
 	// 2. 寻找第一个空格 填进methode
 	size_t sp1 = line.find(' ');
 	if (sp1 == std::string::npos)
-	{
-		_errorCode = 400;	// Bad request
-		_state = PARSE_ERROR;
-		return (true);
-	}
+    	return _setError(400);	// Bad request
+
 	_method = line.substr(0, sp1);
 
 	// 3. 寻找第二个空格 填进uri
 	size_t sp2 = line.find(' ', sp1 + 1);
 	if (sp2 == std::string::npos)
-	{
-		_errorCode = 400;	// Bad request
-		_state = PARSE_ERROR;
-		return (true);
-	}
+    	return _setError(400);	// Bad request
+
 	_uri = line.substr(sp1 + 1, sp2 - sp1 - 1);
 
 	// 4. 剩余填进version
@@ -197,11 +185,8 @@ bool	Request::_parseHeaders()
 		if (end == std::string::npos)
 		{
 			if (_raw.size() > MAX_HEADER_SIZE)
-			{
-				_errorCode = 400;	//❗没有具体的错误码 放Bad request
-				_state = PARSE_ERROR;
-				return (true);
-			}
+    			return _setError(400);	// Bad request
+
 			// 没读到一整行 下次再读
 			return (false);
 		}
@@ -221,11 +206,8 @@ bool	Request::_parseHeaders()
 
 		size_t colon =  line.find(':');
 		if (colon == std::string::npos)
-		{
-			_errorCode = 400;	// Bad request
-			_state = PARSE_ERROR;
-			return (true);
-		}
+    		return _setError(400);	// Bad request
+
 		std::string key = Utils::toLower(Utils::trim(line.substr(0, colon)));
 		std::string value = Utils::trim(line.substr(colon + 1));
 		_headers[key] = value;
@@ -239,9 +221,7 @@ bool	Request::_parseBody()
 	if (size > _maxBodySize)
 	{
 		_pos += size;
-		_state =  PARSE_ERROR;
-		_errorCode = 413;	// Payload too large
-		return (true);
+    	return _setError(400);	// Payload too large
 	}
 	// 如果size大于标出 不返回错误 剩下的内容留在raw里 下一个request接着读
 	if (size >= _contentLength)
@@ -264,19 +244,11 @@ bool	Request::_parseTrailer()
 		if (end == std::string::npos)
 		{
 			if (_raw.size() - _pos > _maxBodySize)
-			{
-				_errorCode = 413;	// Payload too large
-				_state = PARSE_ERROR;
-				return (true);
-			}
+    			return _setError(413);	// Payload too large
 			return (false);
 		}
 		if (end + 1 - _pos > _maxBodySize)
-			{
-				_errorCode = 413;	// Payload too large
-				_state = PARSE_ERROR;
-				return (true);
-			}
+    		return _setError(413);	// Payload too large
 		else if (end == _pos)
 		{
 			_pos = end + 2;
@@ -300,11 +272,8 @@ bool	Request::_parseChunked()
 		std::string chunkSize = _raw.substr(_pos, end - _pos);
 		size_t size;
 		if (!Utils::toSizeTHex(chunkSize, size)) // ❗新function
-		{
-			_state =  PARSE_ERROR;
-			_errorCode = 400;	// Bad request
-			return (true);
-		}
+    		return _setError(400);	// Bad request
+
 
 		// 3. 0为结束 最后一个chunck
 		if (size == 0)
@@ -319,11 +288,7 @@ bool	Request::_parseChunked()
 			return (false);
 		// 5. 追加前检查body大小限制
 		if (_body.size() + size > _maxBodySize)
-		{
-			_errorCode = 413;	// Payload too large
-			_state = PARSE_ERROR;
-			return (true);
-		}
+    		return _setError(413);	// Payload too large
 		
 		// 6. 追加body 移动_pos
 		_body += _raw.substr(end + 2, size);
