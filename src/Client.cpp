@@ -65,6 +65,7 @@ bool Client::readData()
       _response.BuildError(_request.getErrorCode(), defaultServerConfig);
       _state = STATE_SENDING;
     }
+  }
 	else
 	{
 		_state = STATE_PROCESSING;
