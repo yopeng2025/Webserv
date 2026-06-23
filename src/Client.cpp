@@ -46,6 +46,8 @@ bool Client::readData()
   
   // 1. 从clicent socket读取数据（HTTP请求的原始文本数据）到缓冲区 （GET /index.html HTTP/1.1\r\n Host: localhost:8080 ...）
   // = 0 client closed connection, < 0 error occurred, > 0 bytes read successfully
+  // recv() 多次调用才能读取1个完整的HTTP request，尤其是当请求体较大时
+  // TCP 把 request 切成很多块，服务器server必须自己用feed()将_raw拼回来
   ssize_t bytesRead = recv(_fd, buffer, sizeof(buffer), 0);
   if (bytesRead <= 0)
     return false;
@@ -65,13 +67,13 @@ bool Client::readData()
       _response.BuildError(_request.getErrorCode(), defaultServerConfig);
       _state = STATE_SENDING;
     }
+    else if (_request.getState() == Request::PARSE_COMPLETE)
+    {
+      _state = STATE_PROCESSING;
+        // ❗更新_request
+      _request.reset();
+    }
   }
-	else
-	{
-		_state = STATE_PROCESSING;
-			// ❗更新_request
-		_request.reset();
-	}
 	return true;
 }
 

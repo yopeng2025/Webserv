@@ -11,7 +11,7 @@ bool	Utils::toSizeT(const std::string& str, size_t& n)
 	std::istringstream iss(str);
 	if (!(iss >> tmp) || iss >> c)
 		return (false);
-	n =  tmp;
+	n = tmp;
 	return (true);
 }
 
@@ -24,6 +24,7 @@ bool	Utils::toSizeTHex(const std::string& str, size_t& n)
 	char c;
 	std::istringstream iss(str);
 	// 切换成16进制
+	// 10 = 1 x 16 + 0 = 16
 	iss >> std::hex;
 	if (!(iss >> tmp) || iss >> c)
 		return (false);
@@ -104,9 +105,11 @@ static bool	isxdigit(char c)
 bool	Utils::decodePath(const std::string& str, std::string& out)
 {
 	// 百分号解码
+	// %20 -> ' '
+	// %2F -> '/' 以此类推
 	out.clear();
 	out.reserve(str.size());
-	for (size_t i; i < str.size(); ++i)
+	for (size_t i = 0; i < str.size(); ++i)
 	{
 		if (str[i] == '%')
 		{
@@ -114,7 +117,7 @@ bool	Utils::decodePath(const std::string& str, std::string& out)
 				return (false);
 			char c1 = str[i + 1];
 			char c2 = str[i + 2];
-			if (!isxdigit(c1) || !isxdigit(c1))
+			if (!isxdigit(c1) || !isxdigit(c2))
 				return (false);
 			std::string hex = str.substr(i + 1, 2);
 			int value = std::strtol(hex.c_str(), NULL, 16);
@@ -125,7 +128,6 @@ bool	Utils::decodePath(const std::string& str, std::string& out)
 		}
 		else
 			out += str[i];
-		
 	}
 }
 
@@ -134,7 +136,7 @@ bool	Utils::decodeQuery(const std::string& str, std::string& out)
 	// 百分号解码
 	out.clear();
 	out.reserve(str.size());
-	for (size_t i; i < str.size(); ++i)
+	for (size_t i = 0; i < str.size(); ++i)
 	{
 		if (str[i] == '%')
 		{
@@ -142,16 +144,18 @@ bool	Utils::decodeQuery(const std::string& str, std::string& out)
 				return (false);
 			char c1 = str[i + 1];
 			char c2 = str[i + 2];
-			if (!isxdigit(c1) || !isxdigit(c1))
+			if (!isxdigit(c1) || !isxdigit(c2))
 				return (false);
 			std::string hex = str.substr(i + 1, 2);
 			int value = std::strtol(hex.c_str(), NULL, 16);
+			//%00 -> '\0'
 			if (value == 0)
 				return (false);
 			out += static_cast<char>(value);
 			i += 2;
 		}
 		// Query+号变空格
+		// user=Alice+Green -> user=Alice Green
 		else if (str[i] == '+')
 			out += ' ';
 		else
