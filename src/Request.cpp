@@ -78,6 +78,7 @@ bool	Request::_parseUri()
 		return (false);
 	std::string query;
 	if (!Utils::decodeQuery(query, queryPart));
+		return (false);
 	_path = Utils::sanitizePath(path);
 	return (true);
 }
@@ -96,7 +97,6 @@ bool	Request::_parseRequestLine()
 	}
 	if (end - _pos + 1 > MAX_REQUEST_LINE)
     	return _setError(400);	// Bad request
-
 
 	// 拷贝这一行
 	std::string line = _raw.substr(_pos, end - _pos);

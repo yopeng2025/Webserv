@@ -5,8 +5,8 @@
 class Response
 {
 	public:
-	Response();
-	~Response();
+		Response();
+		~Response();
 
 	private:
 

@@ -159,3 +159,30 @@ bool	Utils::decodeQuery(const std::string& str, std::string& out)
 	}
 	return (true);
 }
+
+std::string Utils::sanitizePath(const std::string& path)
+{
+	std::vector<std::string> parts;
+	std::istringstream iss(path);
+	std::string part;
+	while (std::getline(iss, part, '/'))
+	{
+		if(part.empty() || part == ".")
+			continue ;
+		if (part == "..")
+		{
+			if (!parts.empty())
+				parts.pop_back();
+			else
+				parts.push_back(part);
+		}
+	}
+	std::string res = "/";
+	for (size_t i = 0; i < parts.size(); ++i)
+	{
+		res += parts[i];
+		if (i + 1 < parts.size())
+			res += "/";
+	}
+	return (res);
+} 
