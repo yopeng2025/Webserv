@@ -21,8 +21,16 @@ namespace Utils
 	bool			decodeQuery(const std::string& str, std::string& out);
 	std::string		sanitizePath(const std::string& uri);
 
+	// file system
+	std::string     joinPath(const std::string& a, const std::string& b);
+	std::string		readFile(const std::string& path);
+	bool			isDirectory(const std::string& path);
+	bool			isRegularFile(const std::string& path);
+	bool            fileExists(const std::string& path);
 
-
+	// MIME
+	std::string		getMimeType(const std::string& path);
+	std::string		getExtension(const std::string& path);
 }
 
 #endif

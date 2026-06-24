@@ -190,3 +190,90 @@ std::string Utils::sanitizePath(const std::string& path)
 	}
 	return (res);
 } 
+
+std::string Utils::joinPath(const std::string& a, const std::string& b)
+{
+	if (a.empty())
+		return b;
+	if (b.empty())
+		return a;
+	if (a[a.size() - 1] == '/' && b[0] == '/')
+		return a + b.substr(1);
+	if (a[a.size() - 1] != '/' && b[0] != '/')
+		return a + "/" + b;
+	return a + b;
+}
+
+//把整个文件的内容读出来，放进一个 std::string 里返回
+std::string Utils::readFile(const std::string& path)
+{
+	std::ifstream ifs(path.c_str(), std::ios::binary); // 以二进制模式放入文件流，防止换行符被转换/丢失图片数据
+	// 检查文件是否成功打开
+	if (!ifs.is_open())
+		return ("");
+	std::ostringstream oss;
+	oss << ifs.rdbuf();
+	return (oss.str());
+}
+
+bool Utils::isDirectory(const std::string& path)
+{
+	struct stat info;
+
+	// 0 success, -1 error
+	if (stat(path.c_str(), &info) != 0)
+		return false;
+	return (S_ISDIR(info.st_mode));
+}
+
+bool Utils::isRegularFile(const std::string& path)
+{
+	struct stat info;
+
+	if (stat(path.c_str(), &info) != 0)
+		return false;
+	return (S_ISREG(info.st_mode));
+}
+
+bool Utils::fileExists(const std::string& path)
+{
+	struct stat info;
+	return (stat(path.c_str(), &info) == 0);
+}
+
+// Multipurpose Internet Mail Extensions
+// 表示数据类型(Content Type)
+// text/html text/css application/javascript image/png video/mp4 ...
+std::string Utils::getMimeType(const std::string& path) {
+	std::string ext = getExtension(path);
+	if (ext == ".html" || ext == ".htm")	return "text/html";
+	if (ext == ".css")						return "text/css";
+	if (ext == ".js")						return "application/javascript";
+	if (ext == ".json")						return "application/json";
+	if (ext == ".xml")						return "application/xml";
+	if (ext == ".txt")						return "text/plain";
+	if (ext == ".png")						return "image/png";
+	if (ext == ".jpg" || ext == ".jpeg")	return "image/jpeg";
+	if (ext == ".gif")						return "image/gif";
+	if (ext == ".svg")						return "image/svg+xml";
+	if (ext == ".ico")						return "image/x-icon";
+	if (ext == ".pdf")						return "application/pdf";
+	if (ext == ".zip")						return "application/zip";
+	if (ext == ".mp3")						return "audio/mpeg";
+	if (ext == ".mp4")						return "video/mp4";
+	if (ext == ".woff")						return "font/woff";
+	if (ext == ".woff2")					return "font/woff2";
+	if (ext == ".ttf")						return "font/ttf";
+	return "application/octet-stream"; // 应用程序的1个字节流（未知格式），浏览器看到后直接下载
+}
+
+std::string Utils::getExtension(const std::string& path)
+{
+	size_t dot = path.rfind('.');
+	if (dot == std::string::npos || dot  == path.size() - 1)
+		return "";
+	size_t slash = path.rfind('/');
+	if (slash != std::string::npos && slash > dot)
+		return "";
+	return path.substr(dot);
+}
