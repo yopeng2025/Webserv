@@ -68,8 +68,9 @@ bool Client::readData()
 	else
 	{
 		_state = STATE_PROCESSING;
-			// ❗更新_request
+		// ❗更新_request
 		_request.reset();
+	}
 	}
 	return true;
 }

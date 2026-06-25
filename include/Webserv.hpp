@@ -32,7 +32,7 @@
 # define CLIENT_TIMEOUT 60      // seconds
 # define CGI_TIMEOUT    10      
 # define BUFFER_SIZE    4096    // 1KB = 1024 bytes 4KB = 4096 bytes
-# define  SERVER_NAME "Webserv/1.0"
+# define SERVER_NAME "Webserv/1.0"
 # define MAX_REQUEST_LINE 8192  // 8KB
 # define MAX_HEADER_SIZE 8192   // 8KB
 # define MAX_URI_LENTH 2048     // 2KB

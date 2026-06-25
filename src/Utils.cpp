@@ -185,4 +185,13 @@ std::string Utils::sanitizePath(const std::string& path)
 			res += "/";
 	}
 	return (res);
-} 
+}
+
+std::string Utils::getDate()
+{
+	time_t t = time(NULL);
+	struct tm* gmt = gmtime(&t);
+	char buf[128];
+	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", gmt);
+	return (std::string(buf));
+}

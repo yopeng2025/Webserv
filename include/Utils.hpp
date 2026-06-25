@@ -21,6 +21,7 @@ namespace Utils
 	bool			decodeQuery(const std::string& str, std::string& out);
 	std::string		sanitizePath(const std::string& uri);
 
+	std::string		getDate();
 
 
 }
