@@ -16,10 +16,12 @@ namespace Utils
 
     // string
     bool            startsWith(const std::string& str, const std::string& prefix);
-    
 	bool			decodePath(const std::string& str, std::string& out);
 	bool			decodeQuery(const std::string& str, std::string& out);
 	std::string		sanitizePath(const std::string& uri);
+	std::string		htmlEscape(const std::string& str);
+
+	// file system
 
 	// file system
 	std::string     joinPath(const std::string& a, const std::string& b);
@@ -28,9 +30,11 @@ namespace Utils
 	bool			isRegularFile(const std::string& path);
 	bool            fileExists(const std::string& path);
 
-	// MIME
+	// HTTP & MIME
 	std::string		getMimeType(const std::string& path);
 	std::string		getExtension(const std::string& path);
+	std::string     defaultErrorPage(int code);
+	std::string		getStatusText(int code);
 }
 
 #endif

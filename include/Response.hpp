@@ -18,10 +18,11 @@ class Response
 		bool 	_ready;
 		void	handleGet(const Request& request, const ServerConfig& server, const LocationConfig& location);
 		void	handlePost(const Request& request, const ServerConfig& server, const LocationConfig& location);
+		void	handleUpload(const Request& request, const ServerConfig& server, const LocationConfig& location);
 		void	handleDelete(const Request& request, const ServerConfig& server, const LocationConfig& location);
 		std::string _resolvePath(const Request& request, const LocationConfig& location);
 		void 	_serveFile(const std::string&path, const ServerConfig& server);
-		void 	_serveAutoIndex(const std::string& path, const std::string& uri);
+		void 	_serveAutoindex(const std::string& path, const std::string& uri);
 		void 	_buildResponse(int code, const std::string& body);
 };
 

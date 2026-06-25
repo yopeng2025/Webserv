@@ -277,3 +277,59 @@ std::string Utils::getExtension(const std::string& path)
 		return "";
 	return path.substr(dot);
 }
+
+std::string Utils::defaultErrorPage(int code)
+{
+	std::string text = Utils::getStatusText(code);
+	std::string codeStr = Utils::toString(code);
+	std::string body = "<!DOCTYPE html>\n<html>\n<head><title>" + codeStr + " " + text +
+	                   "</title></head>\n<body>\n<center><h1>" + codeStr + " " + text +
+					   "</h1></center>\n<hr\n<center>" + SERVER_NAME + "</center>\n</body>\n</html>\n";
+}
+
+std::string Utils::getStatusText(int code)
+{
+	switch (code)
+	{
+		case 200: return "OK";
+		case 201: return "Created";
+		case 204: return "No Content";
+		case 301: return "Moved Permanently";
+		case 302: return "Found";
+		case 303: return "See Other";
+		case 307: return "Temporary Redirect";
+		case 400: return "Bad Request";
+		case 401: return "Unauthorized";
+		case 403: return "Forbidden";
+		case 404: return "Not Found";
+		case 405: return "Method Not Allowed";
+		case 413: return "Payload Too Large";
+		case 414: return "URI Too Long";
+		case 500: return "Internal Server Error";
+		case 501: return "Not Implemented";
+		case 502: return "Bad Gateway";
+		case 503: return "Service Unavailable";
+		case 504: return "Gateway Timeout";
+		case 505: return "HTTP Version Not Supported";
+		default:  return "Unknown";
+	}
+}
+
+std::string Utils::htmlEscape(const std::string& str)
+{
+	std::string escaped;
+	escaped.reserve(str.size());
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		switch (str[i])
+		{
+			case '&':  escaped += "&amp;";  break;
+			case '<':  escaped += "&lt;";   break;
+			case '>':  escaped += "&gt;";   break;
+			case '"':  escaped += "&quot;"; break;
+			case '\'': escaped += "&#39;";  break;
+			default:   escaped += str[i];   break;
+		}
+	}
+	return escaped;
+}
