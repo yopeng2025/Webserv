@@ -32,18 +32,11 @@ bool	Utils::toSizeTHex(const std::string& str, size_t& n)
 	return (true);
 }
 
-bool	Utils::toInt(const std::string& str, int& n)
-{
-	if (str.empty())
-		return (false);
-	
-	int tmp;
-	char c;
-	std::istringstream iss(str);
-	if (!(iss >> tmp) || iss >> c)
-		return (false);
-	n =  tmp;
-	return (true);
+int toInt(const std::string& s) {
+	std::istringstream iss(s);
+	int n = 0;
+	iss >> n;
+	return n;
 }
 
 std::string     Utils::toString(int n)
@@ -235,7 +228,9 @@ bool Utils::isRegularFile(const std::string& path)
 	return (S_ISREG(info.st_mode));
 }
 
-bool Utils::fileExists(const std::string& path)
+// 检查文件或目录是否存在
+//原名叫fileExists，但更改为pathExists更准确，因为它可以检查目录和文件是否存在
+bool Utils::pathExists(const std::string& path)  
 {
 	struct stat info;
 	return (stat(path.c_str(), &info) == 0);
@@ -332,4 +327,14 @@ std::string Utils::htmlEscape(const std::string& str)
 		}
 	}
 	return escaped;
+}
+
+std::string     Utils::trimSpace(const std::string& str)
+{
+	size_t start = str.find_first_not_of(" \t\r\n");
+	if (start == std::string::npos)
+		return ("");
+	size_t end = str.find_last_not_of(" \t\r\n");
+	std::string trimmed = str.substr(start, end - start + 1);
+	return trimmed;
 }

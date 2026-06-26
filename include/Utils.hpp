@@ -8,7 +8,7 @@ namespace Utils
     // Type conversions
 	bool			toSizeT(const std::string& str, size_t& n);
 	bool			toSizeTHex(const std::string& str, size_t& n);
-	bool			toInt(const std::string& str, int& n);
+	int				toInt(const std::string& str);
     std::string     toString(int n);
     std::string     toUpper(const std::string& str);
 	std::string		toLower(const std::string& str);
@@ -20,6 +20,7 @@ namespace Utils
 	bool			decodeQuery(const std::string& str, std::string& out);
 	std::string		sanitizePath(const std::string& uri);
 	std::string		htmlEscape(const std::string& str);
+	std::string     trimSpace(const std::string& str);
 
 	// file system
 
@@ -28,7 +29,7 @@ namespace Utils
 	std::string		readFile(const std::string& path);
 	bool			isDirectory(const std::string& path);
 	bool			isRegularFile(const std::string& path);
-	bool            fileExists(const std::string& path);
+	bool            pathExists(const std::string& path);
 
 	// HTTP & MIME
 	std::string		getMimeType(const std::string& path);

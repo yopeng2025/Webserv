@@ -64,7 +64,7 @@ bool Client::readData()
     if (_request.getState() == Request::PARSE_ERROR)
     {
       ServerConfig defaultServerConfig;
-      _response.BuildError(_request.getErrorCode(), defaultServerConfig);
+      _response.buildError(_request.getErrorCode(), defaultServerConfig);
       _state = STATE_SENDING;
     }
     else if (_request.getState() == Request::PARSE_COMPLETE)
@@ -135,7 +135,7 @@ void Client::process(const Config& config)
     else                                 // 如果给出的.conf文件没有任何server config，构建500错误响应
     {
       ServerConfig defaultServer;
-      _response.BuildError(500, defaultServer);
+      _response.buildError(500, defaultServer);
       _state = STATE_SENDING;
       return;
     }
@@ -183,7 +183,7 @@ void Client::finalizeCGI()
     if (_cgi->getOutput().empty())
       _response.buildError(502, *server);
     else
-      _response.setCGIResponse(_cgi->getOutput(), *server);
+      _response.setCGIResponse(_cgi->getOutput());
     
     delete _cgi;
     _cgi = NULL;
