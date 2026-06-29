@@ -32,7 +32,7 @@ bool	Utils::toSizeTHex(const std::string& str, size_t& n)
 	return (true);
 }
 
-int toInt(const std::string& s) {
+int Utils::toInt(const std::string& s) {
 	std::istringstream iss(s);
 	int n = 0;
 	iss >> n;
@@ -122,6 +122,7 @@ bool	Utils::decodePath(const std::string& str, std::string& out)
 		else
 			out += str[i];
 	}
+	return (true);
 }
 
 bool	Utils::decodeQuery(const std::string& str, std::string& out)
@@ -289,6 +290,7 @@ std::string Utils::defaultErrorPage(int code)
 	std::string body = "<!DOCTYPE html>\n<html>\n<head><title>" + codeStr + " " + text +
 	                   "</title></head>\n<body>\n<center><h1>" + codeStr + " " + text +
 					   "</h1></center>\n<hr\n<center>" + SERVER_NAME + "</center>\n</body>\n</html>\n";
+	return (body);
 }
 
 std::string Utils::getStatusText(int code)

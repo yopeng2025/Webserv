@@ -1,11 +1,12 @@
 #include "Request.hpp"
+#include "Server.hpp"
 
-Request::Request(ListenSocket* ls)
-	: _state(PARSE_REQUEST_LINE), 
-	  _maxBodySize(ls->Config->clientMaxBody),
+Request::Request(ListenSocket* ls):
 	  _pos(0),
 	  _contentLength(0),
-	  _errorCode(0) {}
+	  _errorCode(0),
+	  _maxBodySize(ls->Config->clientMaxBody),
+	  _state(PARSE_REQUEST_LINE) {}
 
 Request::~Request() {}
 
@@ -78,7 +79,7 @@ bool	Request::_parseUri()
 	if (!Utils::decodePath(pathPart, path))
 		return (false);
 	std::string query;
-	if (!Utils::decodeQuery(query, queryPart));
+	if (!Utils::decodeQuery(query, queryPart))
 		return (false);
 	_path = Utils::sanitizePath(path);
 	return (true);

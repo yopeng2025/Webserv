@@ -1,8 +1,8 @@
 #include "CGI.hpp"
 #include "Utils.hpp"
 
-CGI::CGI(): _pid(-1), _startTime(0), _done(false), _bodyWritten(false),
-			_inputFd(-1), _outputFd(-1), _bodyWriteOffset(0) {}
+CGI::CGI(): _pid(-1), _inputFd(-1), _outputFd(-1), _startTime(0), _done(false), _bodyWritten(false),
+			_bodyWriteOffset(0) {}
 
 CGI::~CGI()
 {

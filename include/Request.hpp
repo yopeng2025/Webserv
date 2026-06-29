@@ -2,7 +2,8 @@
 # define REQUEST_HPP
 
 #include "Webserv.hpp"
-#include "Client.hpp"
+
+struct ListenSocket;
 
 class Request
 {	

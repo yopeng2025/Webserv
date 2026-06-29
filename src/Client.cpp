@@ -1,4 +1,5 @@
-# include "Client.hpp"
+#include "Client.hpp"
+#include "Request.hpp"
 
 Client::Client(int fd, ListenSocket* ls)
 	: _fd(fd),
@@ -198,19 +199,19 @@ void Client::process(const Config& config)
 
 void Client::finalizeCGI()
 {
-  if (!_cgi || !_cgi->isDone())
-    return;
-  
-    ServerConfig defaultServer;
-    const ServerConfig* server = _matchedServer ? _matchedServer : &defaultServer;
+	if (!_cgi || !_cgi->isDone())
+		return;
 
-    if (_cgi->getOutput().empty())
-      _response.buildError(502, *server);
-    else
-      _response.setCGIResponse(_cgi->getOutput(), *server);
-    
-    delete _cgi;
-    _cgi = NULL;
-    _matchedServer = NULL;
-    _state = STATE_SENDING;
+	ServerConfig defaultServer;
+	const ServerConfig* server = _matchedServer ? _matchedServer : &defaultServer;
+
+	if (_cgi->getOutput().empty())
+		_response.buildError(502, *server);
+	else
+		_response.setCGIResponse(_cgi->getOutput(), *server);
+
+	delete _cgi;
+	_cgi = NULL;
+	_matchedServer = NULL;
+	_state = STATE_SENDING;
 }

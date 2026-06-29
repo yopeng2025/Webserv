@@ -57,7 +57,7 @@ void Server::_createListenSockets()
     const std::vector<ServerConfig>& servers = _config.getServers();
     // save created host:port pairs to avoid duplicates
     // set: unique keys, sorted by alphabet
-    std::set<std::pair<std::string, int>> createdSockets;
+    std::set<std::pair<std::string, int> > createdSockets;
 
     for (size_t i = 0; i < servers.size(); i++)
     {
@@ -289,6 +289,7 @@ void	Server::_acceptConnection(int listenFd)
 	if (!setNonBlocking(clientFd))
 	{
 		LOG_ERROR("fcntl() failed on client fd");
+		
 		return ;
 	}
 

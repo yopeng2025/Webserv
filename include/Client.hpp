@@ -3,9 +3,12 @@
 
 #include "Webserv.hpp"
 #include "Server.hpp"
-#include "Request.hpp"
-#include "Response.hpp"
 #include "Router.hpp"
+#include "CGI.hpp"
+#include "Response.hpp"
+
+struct ListenSocket;
+class Request;
 
 class Client
 {

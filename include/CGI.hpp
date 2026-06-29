@@ -5,6 +5,8 @@
 # include "Config.hpp"
 # include "Request.hpp" 
 
+class Request;
+
 class CGI
 {
 	public:

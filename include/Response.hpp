@@ -2,9 +2,10 @@
 # define RESPONSE_HPP
 
 #include "Webserv.hpp"
-#include "Request.hpp"
-#include "Client.hpp"
-#include "Config.hpp"
+
+class Request;
+class ServerConfig;
+class LocationConfig;
 
 class Response
 {

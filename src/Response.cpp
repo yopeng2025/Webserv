@@ -2,6 +2,7 @@
 #include "Router.hpp"
 #include "Utils.hpp"
 
+
 /*
 1. 如果有重定向， 构建一个HTTP响应body+状态码，Location头部指向重定向的URL。
 
@@ -484,8 +485,10 @@ void    Response::setCGIResponse(const std::string& cgiOutput, const ServerConfi
         if (line.empty())
             continue;
         // 去掉行尾的 \r
-        if (!line.empty() && line.back() == '\r')
-            line.pop_back();
+		if (!line.empty() && line[line.size() - 1] == '\r')
+			line.erase(line.size() - 1);
+        // if (!line.empty() && line.back() == '\r')
+        //     line.pop_back();
         size_t colon = line.find(':');
         if (colon == std::string::npos)
             continue;
