@@ -6,6 +6,9 @@
 #include "Request.hpp"
 #include "Response.hpp"
 #include "Router.hpp"
+#include "CGI.hpp"
+
+struct ListenSocket;
 
 class Client
 {

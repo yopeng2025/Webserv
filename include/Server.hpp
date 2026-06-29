@@ -27,8 +27,6 @@ class Server
 		const Config&										_config;
 		bool												_running;
 		std::vector<struct pollfd>							_pollfds;
-		// Client fd + client
-		std::map<int, Client*>								_fdToClients;
 		// Client fd + CGI i/o fd + client
 		std::map<int, Client*>								_clients;
 		// Listen fd + ListenSocket

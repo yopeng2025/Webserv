@@ -4,6 +4,8 @@
 #include "Webserv.hpp"
 #include "Client.hpp"
 
+struct ListenSocket;
+
 class Request
 {	
 	public:
