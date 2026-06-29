@@ -64,14 +64,14 @@ bool Client::readData()
 		if (_request.getState() == Request::PARSE_ERROR)
 		{
 			ServerConfig defaultServerConfig;
-			_response.BuildError(_request.getErrorCode(), defaultServerConfig);
+			_response.buildError(_request.getErrorCode(), defaultServerConfig);
 			_state = STATE_SENDING;
 		}
 		else
 		{
 			_state = STATE_PROCESSING;
 			// ❗更新_request
-			_request.reset();
+			_request.reset();                                                      //❓ ❓
 		}
 	}
 	return true;
@@ -84,7 +84,7 @@ bool Client::sendData()
     return true;
   
   // 2. 从响应对象获取要发送的数据
-  const std::string& data = _response.getDate();
+  const std::string& data = _response.getData();
   size_t remainData = data.size() - _sendOffset;  //没发送 = 总数据 - 已发送
   
   // 发送完成， 没有剩余的数据了
@@ -135,7 +135,7 @@ void Client::process(const Config& config)
     else                                 // 如果给出的.conf文件没有任何server config，构建500错误响应
     {
       ServerConfig defaultServer;
-      _response.BuildError(500, defaultServer);
+      _response.buildError(500, defaultServer);
       _state = STATE_SENDING;
       return;
     }
@@ -183,7 +183,7 @@ void Client::finalizeCGI()
     if (_cgi->getOutput().empty())
       _response.buildError(502, *server);
     else
-      _response.setCGIResponse(_cgi->getOutput(), *server);
+      _response.setCGIResponse(_cgi->getOutput());
     
     delete _cgi;
     _cgi = NULL;

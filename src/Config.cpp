@@ -203,12 +203,10 @@ void Config::_parseServer()
         }
         else if (token == "error_page")
         {
-            std::string code = _nextToken();
+            std::string codeStr = _nextToken();
             std::string path = _nextToken();
-            int codeInt;
-            if (!Utils::toInt(code, codeInt))
-                throw std::runtime_error("Invalid integer value: " + code);
-            server.errorPages[codeInt] = path;
+            int code = Utils::toInt(codeStr);
+            server.errorPages[code] = path;
             _expectToken(";");
         }
         else if (token == "location")
@@ -234,10 +232,7 @@ void Config::_parseListen(ServerConfig& server,const std::string& value)
     if (colon != std::string::npos)             // If a colon is found, split the value into host and port
     {
         server.host = value.substr(0, colon);                   // 127.0.0.1
-        int tmp;
-        if (Utils::toInt(value.substr(colon + 1), tmp))    // 8080
-            throw std::runtime_error("Invalid integer value: " + value.substr(colon + 1));
-        server.port = tmp;
+        server.port = Utils::toInt(value.substr(colon + 1));
     }
     else                                        // If no colon is found, treat the entire value as the port and use the default host
     {
@@ -251,12 +246,7 @@ void Config::_parseListen(ServerConfig& server,const std::string& value)
             }
         }
         if (isNumber)
-        {
-            int tmp;
-            if (!Utils::toInt(value, tmp))
-                throw std::runtime_error("Invalid integer value: " + value);
-            server.port = tmp;    // 8080
-        }
+            server.port = Utils::toInt(value.substr(colon + 1));
         else
             server.host = value;                  // "127.0.0.1" or "localhost"
     }
@@ -348,15 +338,9 @@ void Config::_parseLocation(ServerConfig& server)
         }
         else if (token == "return")
         {
-            std::string code = _nextToken();
-            std::string url = _nextToken();
-            int codeInt;
-            if(!Utils::toInt(code, codeInt))
-                throw std::runtime_error("Invalid integer value: " + code);
-            if (codeInt < 300 || codeInt >= 400)
-                throw std::runtime_error("Invalid redirect code: " + code);
-            location.redirectCode = codeInt;
-            location.redirect = url;
+            std::string codeStr = _nextToken();
+            location.redirectCode = Utils::toInt(codeStr);
+            location.redirect = _nextToken();
             _expectToken(";");
         }
         else

@@ -11,14 +11,15 @@ class Response
 		Response();
 		~Response();
 
+		bool	isReady() const;
+		std::string	getData() const;
 		void	build(const Request& req, const ServerConfig& server, const LocationConfig&);
 		void	buildError(int code, const ServerConfig& server);
-		bool	isReady() const;
+		void    setCGIResponse(const std::string& cgiOutput, const ServerConfig& server);
 		
 	private:
 		bool								_ready;
 		std::string							_data;
-		std::string							_statusLine;
 		std::map<std::string, std::string>	_headers;
 		std::string							_body;
 		int									_statusCode;
@@ -28,11 +29,10 @@ class Response
 		void		_handleRedirect(int code, const std::string& url);
 		void		_handleGet(const Request& req, const ServerConfig& server, const LocationConfig& location);
 		void		_handlePost(const Request& req, const ServerConfig& server, const LocationConfig& location);
+		void 		_handleUpload(const Request& request, const ServerConfig& server, const LocationConfig& location);
 		void		_handleDelete(const Request& req, const ServerConfig& server, const LocationConfig& location);
-
-
+		void 		_serveFile(const std::string&path, const ServerConfig& server);
+		void 		_serveAutoindex(const std::string& path, const std::string& uri);
 };
-
-
 
 #endif

@@ -32,18 +32,11 @@ bool	Utils::toSizeTHex(const std::string& str, size_t& n)
 	return (true);
 }
 
-bool	Utils::toInt(const std::string& str, int& n)
-{
-	if (str.empty())
-		return (false);
-	
-	int tmp;
-	char c;
-	std::istringstream iss(str);
-	if (!(iss >> tmp) || iss >> c)
-		return (false);
-	n =  tmp;
-	return (true);
+int toInt(const std::string& s) {
+	std::istringstream iss(s);
+	int n = 0;
+	iss >> n;
+	return n;
 }
 
 std::string     Utils::toString(int n)
@@ -198,4 +191,159 @@ std::string Utils::getDate()
 	char buf[128];
 	strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", gmt);
 	return (std::string(buf));
+} 
+
+std::string Utils::joinPath(const std::string& a, const std::string& b)
+{
+	if (a.empty())
+		return b;
+	if (b.empty())
+		return a;
+	if (a[a.size() - 1] == '/' && b[0] == '/')
+		return a + b.substr(1);
+	if (a[a.size() - 1] != '/' && b[0] != '/')
+		return a + "/" + b;
+	return a + b;
+}
+
+//把整个文件的内容读出来，放进一个 std::string 里返回
+std::string Utils::readFile(const std::string& path)
+{
+	std::ifstream ifs(path.c_str(), std::ios::binary); // 以二进制模式放入文件流，防止换行符被转换/丢失图片数据
+	// 检查文件是否成功打开
+	if (!ifs.is_open())
+		return ("");
+	std::ostringstream oss;
+	oss << ifs.rdbuf();
+	return (oss.str());
+}
+
+bool Utils::isDirectory(const std::string& path)
+{
+	struct stat info;
+
+	// 0 success, -1 error
+	if (stat(path.c_str(), &info) != 0)
+		return false;
+	return (S_ISDIR(info.st_mode));
+}
+
+bool Utils::isRegularFile(const std::string& path)
+{
+	struct stat info;
+
+	if (stat(path.c_str(), &info) != 0)
+		return false;
+	return (S_ISREG(info.st_mode));
+}
+
+// 检查文件或目录是否存在
+//原名叫fileExists，但更改为pathExists更准确，因为它可以检查目录和文件是否存在
+bool Utils::pathExists(const std::string& path)  
+{
+	struct stat info;
+	return (stat(path.c_str(), &info) == 0);
+}
+
+// Multipurpose Internet Mail Extensions
+// 表示数据类型(Content Type)
+// text/html text/css application/javascript image/png video/mp4 ...
+std::string Utils::getMimeType(const std::string& path) {
+	std::string ext = getExtension(path);
+	if (ext == ".html" || ext == ".htm")	return "text/html";
+	if (ext == ".css")						return "text/css";
+	if (ext == ".js")						return "application/javascript";
+	if (ext == ".json")						return "application/json";
+	if (ext == ".xml")						return "application/xml";
+	if (ext == ".txt")						return "text/plain";
+	if (ext == ".png")						return "image/png";
+	if (ext == ".jpg" || ext == ".jpeg")	return "image/jpeg";
+	if (ext == ".gif")						return "image/gif";
+	if (ext == ".svg")						return "image/svg+xml";
+	if (ext == ".ico")						return "image/x-icon";
+	if (ext == ".pdf")						return "application/pdf";
+	if (ext == ".zip")						return "application/zip";
+	if (ext == ".mp3")						return "audio/mpeg";
+	if (ext == ".mp4")						return "video/mp4";
+	if (ext == ".woff")						return "font/woff";
+	if (ext == ".woff2")					return "font/woff2";
+	if (ext == ".ttf")						return "font/ttf";
+	return "application/octet-stream"; // 应用程序的1个字节流（未知格式），浏览器看到后直接下载
+}
+
+std::string Utils::getExtension(const std::string& path)
+{
+	size_t dot = path.rfind('.');
+	if (dot == std::string::npos || dot  == path.size() - 1)
+		return "";
+	size_t slash = path.rfind('/');
+	if (slash != std::string::npos && slash > dot)
+		return "";
+	return path.substr(dot);
+}
+
+std::string Utils::defaultErrorPage(int code)
+{
+	std::string text = Utils::getStatusText(code);
+	std::string codeStr = Utils::toString(code);
+	std::string body = "<!DOCTYPE html>\n<html>\n<head><title>" + codeStr + " " + text +
+	                   "</title></head>\n<body>\n<center><h1>" + codeStr + " " + text +
+					   "</h1></center>\n<hr\n<center>" + SERVER_NAME + "</center>\n</body>\n</html>\n";
+}
+
+std::string Utils::getStatusText(int code)
+{
+	switch (code)
+	{
+		case 200: return "OK";
+		case 201: return "Created";
+		case 204: return "No Content";
+		case 301: return "Moved Permanently";
+		case 302: return "Found";
+		case 303: return "See Other";
+		case 307: return "Temporary Redirect";
+		case 400: return "Bad Request";
+		case 401: return "Unauthorized";
+		case 403: return "Forbidden";
+		case 404: return "Not Found";
+		case 405: return "Method Not Allowed";
+		case 413: return "Payload Too Large";
+		case 414: return "URI Too Long";
+		case 500: return "Internal Server Error";
+		case 501: return "Not Implemented";
+		case 502: return "Bad Gateway";
+		case 503: return "Service Unavailable";
+		case 504: return "Gateway Timeout";
+		case 505: return "HTTP Version Not Supported";
+		default:  return "Unknown";
+	}
+}
+
+std::string Utils::htmlEscape(const std::string& str)
+{
+	std::string escaped;
+	escaped.reserve(str.size());
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		switch (str[i])
+		{
+			case '&':  escaped += "&amp;";  break;
+			case '<':  escaped += "&lt;";   break;
+			case '>':  escaped += "&gt;";   break;
+			case '"':  escaped += "&quot;"; break;
+			case '\'': escaped += "&#39;";  break;
+			default:   escaped += str[i];   break;
+		}
+	}
+	return escaped;
+}
+
+std::string     Utils::trimSpace(const std::string& str)
+{
+	size_t start = str.find_first_not_of(" \t\r\n");
+	if (start == std::string::npos)
+		return ("");
+	size_t end = str.find_last_not_of(" \t\r\n");
+	std::string trimmed = str.substr(start, end - start + 1);
+	return trimmed;
 }

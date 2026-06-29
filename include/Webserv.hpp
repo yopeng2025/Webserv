@@ -13,7 +13,7 @@
 # include <cctype>              // std::isspace
 # include <cstring>             // std::strerror
 # include <ctime>               // time()
-
+# include <algorithm>           // sort()
 
 // c header files
 # include <unistd.h>            // read(), write(), close(), getcwd()
@@ -26,6 +26,9 @@
 # include <arpa/inet.h>         // inet_addr()
 # include <netdb.h>             // addrinfo(), getaddrinfo()   
 # include <sys/wait.h>          // waitpid()
+# include <sys/stat.h>          // stat() S_ISDIR, S_ISREG
+# include <dirent.h>            // DIR, opendir(), readdir(), closedir()
+
 
 // marcos
 # define DEFAULT_CONFIG "config/default.conf"
