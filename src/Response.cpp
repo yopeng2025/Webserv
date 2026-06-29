@@ -45,11 +45,23 @@ Connetction: close
 
 */
 
-Response::Response(): _ready(false) {}
+Response::Response(): _ready(false), _statusCode(0), _keepAlive(false) {}
 
 Response::~Response() {}
 
+void	Response::reset()
+{
+	_ready = false;
+	_data.clear();
+	_headers.clear();
+	_body.clear();
+	_statusCode = 0;;
+	_keepAlive = false;
+}
+
 bool	Response::isReady() const { return (_ready); }
+
+void	Response::setKeepAlive(bool keepAlive)	{ _keepAlive = keepAlive; }
 
 std::string	Response::getData() const { return (_data); }
 
@@ -73,7 +85,7 @@ void	Response::buildError(int code, const ServerConfig& server)
 
 void    Response::_buildResponse()
 {
-	_data = "HTTP/1.1";
+	_data = "HTTP/1.1 ";
 	_data += Utils::toString(_statusCode) + " ";
 	_data += Utils::getStatusText(_statusCode) + "\r\n";
 
@@ -85,17 +97,19 @@ void    Response::_buildResponse()
 
 	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); ++it)
 		_data += it->first + ": " + it->second + "\r\n";
-	
+
 	if (_headers.find("Content-Length") == _headers.end())
 	{
 		_data += "Content-Length";
-		_data += _body.size();
+		_data += Utils::toString(_body.size());
 		_data += "\r\n";
 	}
 
-	if (_headers.find("Connection") == _headers.end())
+	if (_keepAlive)
+		_data += "Connection: keep-alive\r\n";
+	else
 		_data += "Connection: close\r\n";
-	
+
 	_data += "\r\n";
 	_data += _body;
 

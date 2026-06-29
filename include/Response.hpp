@@ -3,6 +3,7 @@
 
 #include "Webserv.hpp"
 #include "Request.hpp"
+#include "Client.hpp"
 #include "Config.hpp"
 
 class Response
@@ -11,11 +12,13 @@ class Response
 		Response();
 		~Response();
 
+		void	reset();
 		bool	isReady() const;
 		std::string	getData() const;
 		void	build(const Request& req, const ServerConfig& server, const LocationConfig&);
 		void	buildError(int code, const ServerConfig& server);
 		void    setCGIResponse(const std::string& cgiOutput, const ServerConfig& server);
+		void	setKeepAlive(bool keepAlive);
 		
 	private:
 		bool								_ready;
@@ -23,6 +26,7 @@ class Response
 		std::map<std::string, std::string>	_headers;
 		std::string							_body;
 		int									_statusCode;
+		bool								_keepAlive;
 
 		bool		_checkMethod(const Request& req, const LocationConfig& location);
 		void		_buildResponse();

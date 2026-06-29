@@ -10,7 +10,8 @@ Client::Client(int fd, ListenSocket* ls)
 		_cgi(NULL),
 		_sendOffset(0),
 		_matchedServer(NULL),
-		_lastActivity(time(NULL)) {}
+		_lastActivity(time(NULL)),
+    _keepAlive(false) {}
 
 Client::~Client()
 {
@@ -34,10 +35,24 @@ CGI* Client::getCGI() const {return _cgi;}
 
 int Client::getFd() const {return _fd;}
 
+bool	Client::getKeepAlive() const { return (_keepAlive); }
+
 bool Client::hasTimeout() const
 {
   // time(NULL): returns seconds since the Unix epoch (January 1, 1970).
   return ((time(NULL) - _lastActivity) >= CLIENT_TIMEOUT);
+}
+
+void	Client::_checkKeepAlive()
+{
+	std::string connection = Utils::toLower(_request.getHeader("Connection"));
+	if (connection == "keep-alive")
+		_keepAlive = false;
+	else if (connection == "close")
+		_keepAlive = true;
+	else
+		// HTTP/1.1默认keep-alive HTTP/1.0默认close
+		_keepAlive = (_request.getVersion() == "HTTP/1.1");
 }
 
 bool Client::readData()
@@ -69,9 +84,8 @@ bool Client::readData()
 		}
 		else
 		{
+			_checkKeepAlive();
 			_state = STATE_PROCESSING;
-			// ❗更新_request
-			_request.reset();                                                      //❓ ❓
 		}
 	}
 	return true;
@@ -79,36 +93,47 @@ bool Client::readData()
 
 bool Client::sendData()
 {
-  // 1.  如果响应还没有准备好，继续等待
-  if (!_response.isReady())
-    return true;
-  
-  // 2. 从响应对象获取要发送的数据
-  const std::string& data = _response.getData();
-  size_t remainData = data.size() - _sendOffset;  //没发送 = 总数据 - 已发送
-  
-  // 发送完成， 没有剩余的数据了
-  if (remainData == 0)
-  {
-    _state = STATE_DONE;
-    return true;  
-  }
+	// 1.  如果响应还没有准备好，继续等待
+	if (!_response.isReady())
+	return true;
 
-  // 3. 发送数据
-  // data.c_str() + _sendOffset: 发送数据的起始位置
-  // remainData: 还需要发送的数据长度
-  // send() returns the number of bytes actually sent, which may be less than remainData
-  ssize_t bytesSent = send(_fd, data.c_str() + _sendOffset, remainData, 0);
-  if (bytesSent <= 0)
-    return false;
-  
-  _sendOffset += bytesSent;     // 更新已发送的字节数
-  _lastActivity = time(NULL);   // 更新时间戳
+	// 2. 从响应对象获取要发送的数据
+	const std::string& data = _response.getData();
+	size_t remainData = data.size() - _sendOffset;  //没发送 = 总数据 - 已发送
 
-  if (_sendOffset >= data.size())
-    _state = STATE_DONE;        // 全部数据发送完成，标记为DONE状态
-  
-  return true;
+	// 发送完成， 没有剩余的数据了
+	if (remainData == 0)
+	{
+		_state = STATE_DONE;
+		return true;  
+	}
+
+	// 3. 发送数据
+	// data.c_str() + _sendOffset: 发送数据的起始位置
+	// remainData: 还需要发送的数据长度
+	// send() returns the number of bytes actually sent, which may be less than remainData
+	ssize_t bytesSent = send(_fd, data.c_str() + _sendOffset, remainData, 0);
+	if (bytesSent <= 0)
+	return false;
+
+	_sendOffset += bytesSent;     // 更新已发送的字节数
+	_lastActivity = time(NULL);   // 更新时间戳
+
+	// 全部数据发送完成 根据keep-alive flag决定是否关闭客户
+	if (_sendOffset >= data.size())
+	{
+		if (_keepAlive)
+		{
+			_request.reset();
+			_response.reset();
+			_sendOffset = 0;
+			_state = STATE_READING;
+		}
+		else
+			_state = STATE_DONE; 
+	}
+
+	return true;
 }
 
 // Routing
@@ -141,8 +166,6 @@ void Client::process(const Config& config)
     }
   }
 
-  // _request.setMaxBodySize(server->clientMaxBody); // 重复 可以删掉
-
   const LocationConfig* location = server->findLocation(_request.getPath());
   if (!location)
   {
@@ -168,6 +191,7 @@ void Client::process(const Config& config)
     _state = STATE_CGI_RUNNING;
     return ;
   }
+  _response.setKeepAlive(_keepAlive);
   _response.build(_request, *server, *location);
   _state = STATE_SENDING;
 }
