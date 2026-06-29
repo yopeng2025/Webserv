@@ -362,6 +362,7 @@ std::string	Request::getHeader(const std::string& str) const
 
 const std::map<std::string, std::string>& Request::getHeaders()  const { return _headers; }
 const std::string& Request::getMethod() const { return _method; }
+const std::string& Request::getVersion() const { return _version; }
 const std::string& Request::getQuery() const { return _query; }
 const std::string& Request::getPath() const { return _path; }
 const std::string& Request::getBody() const { return _body; }

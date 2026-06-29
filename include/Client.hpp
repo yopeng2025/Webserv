@@ -27,12 +27,13 @@ class Client
 		State	getState() const;
 		CGI*	getCGI() const;
 		int		getFd() const;
-
+		bool	getKeepAlive () const;
 		bool	hasTimeout() const;
 		bool	readData();
 		bool	sendData();
 		void	process(const Config& config);
 		void	finalizeCGI();
+
 
 	private:
 		int						_fd;
@@ -45,9 +46,12 @@ class Client
 		size_t					_sendOffset;
 		const ServerConfig*		_matchedServer;
 		time_t					_lastActivity;
+		bool					_keepAlive;
 
 		Client(const Client& other);
 		Client& operator=(const Client&);
+
+		void	_checkKeepAlive();
 };
 
 #endif
