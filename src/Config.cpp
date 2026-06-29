@@ -1,4 +1,3 @@
-#include "Webserv.hpp"
 #include "Config.hpp"
 #include "Utils.hpp"
 
@@ -18,8 +17,8 @@ LocationConfig::LocationConfig():
 ServerConfig::ServerConfig():                                                       
     host("0.0.0.0"), port(80), clientMaxBody(1024 * 1024) {}  // default 1MB (= 1024KB; 1KB = 1024 bytes)
 
-// GET /images/logo.png HTTP/1.1
-// uri = "/images/logo.png"
+// GET /images/logo/logo.png HTTP/1.1
+// uri = "/images/logo/logo.png"
 const LocationConfig* ServerConfig::findLocation(const std::string& uri) const
 {
     const LocationConfig* bestMatch = NULL;
@@ -31,12 +30,14 @@ const LocationConfig* ServerConfig::findLocation(const std::string& uri) const
 
         // Check if the location path is a prefix of the URI
         // e.g. locationPath = "/" or "/images" or "/images/logo"
+        // find the longest matching prefix to determine the best match
+        // e.g. locationPath = "/images/logo" is a better match than locationPath = "/images"
         if (Utils::startsWith(uri, locationPath))  
         {
             if (locationPath.length() > bestMatchLength) 
             {
                 bestMatch = &locations[i];
-                bestMatchLength = locationPath.length(); // update the best match with the longest matching prefix (/images/logo > /images > /)
+                bestMatchLength = locationPath.length();
             }
         }
     }
@@ -48,6 +49,27 @@ const LocationConfig* ServerConfig::findLocation(const std::string& uri) const
 Config::Config(): _pos(0) {}
 
 Config::~Config() {}
+
+const std::vector<ServerConfig>& Config::getServers() const {return _servers;}
+
+const ServerConfig* Config::findServer(const std::string& host, int port) const
+{
+    const ServerConfig* default_server = NULL;
+    for (size_t i = 0; i < _servers.size(); i++)
+    {
+        if (_servers[i].port == port)
+        {
+            if (default_server == NULL)
+                default_server = &_servers[i];
+            for (size_t j = 0; j < _servers[i].serverNames.size(); j++)
+            {
+                if (_servers[i].serverNames[j] == host)
+                    return &_servers[i];
+            }
+        }
+    }
+    return default_server;
+}
 
 void Config::parse(const std::string& filepath)
 {
@@ -80,30 +102,6 @@ void Config::parse(const std::string& filepath)
         throw std::runtime_error("No server block found in config file");
     
     _vlidateConfig();
-}
-
-const std::vector<ServerConfig>& Config::getServers() const
-{
-    return _servers;
-}
-
-const ServerConfig* Config::findServer(const std::string& host, int port) const
-{
-    const ServerConfig* default_server = NULL;
-    for (size_t i = 0; i < _servers.size(); i++)
-    {
-        if (_servers[i].port == port)
-        {
-            if (default_server == NULL)
-                default_server = &_servers[i];
-            for (size_t j = 0; j < _servers[i].serverNames.size(); j++)
-            {
-                if (_servers[i].serverNames[j] == host)
-                    return &_servers[i];
-            }
-        }
-    }
-    return default_server;
 }
 
 std::string Config::_nextToken()
@@ -379,6 +377,7 @@ void Config::_vlidateConfig()
                         }
                     }
 
+                // 提醒有两个一样的server name, 此时不做任何动作；server执行的时候以第一个为准，第二个会被忽略
                 if (!hasdifferentnames)
                     LOG_INFO("Duplicate server on " << prev_server.host << ":" << prev_server.port
                             << " (same server_name). Second block will be ignored.");

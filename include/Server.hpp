@@ -51,6 +51,9 @@ class Server
 
 		void	_addPollFd(int fd, short events);
 		void	_removePollFd(int fd);
+
+		Server(const Server&);
+		Server& operator=(const Server&);
 };
 
 #endif
