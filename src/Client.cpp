@@ -183,7 +183,7 @@ void Client::finalizeCGI()
     if (_cgi->getOutput().empty())
       _response.buildError(502, *server);
     else
-      _response.setCGIResponse(_cgi->getOutput());
+      _response.setCGIResponse(_cgi->getOutput(), *server);
     
     delete _cgi;
     _cgi = NULL;
