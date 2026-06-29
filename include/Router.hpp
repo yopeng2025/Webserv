@@ -8,6 +8,7 @@
 namespace Router
 {
     std::string resolvePath(const std::string& uri, const LocationConfig& location);
+    bool        isCGI(const LocationConfig& location, const std::string& resolvedPath);
 }
 
 #endif

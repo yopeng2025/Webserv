@@ -17,3 +17,18 @@ std::string Router::resolvePath(const std::string& uri, const LocationConfig& lo
     
     return resolvedPath;
 }
+
+bool    Router::isCGI(const LocationConfig& location, const std::string& resolvedPath)
+{
+    if (location.cgiExtension.empty() || location.cgiPath.empty())
+        return false;
+    
+    // cgiExtension: .py
+    // resolvedPath: /www/cgi-bin/script.py
+    if (location.cgiExtension.length() > resolvedPath.length())
+        return false;
+
+    size_t start = resolvedPath.size() - location.cgiExtension.size();
+    int    match = resolvedPath.compare(start, location.cgiExtension.size(), location.cgiExtension);
+    return (match == 0);
+}

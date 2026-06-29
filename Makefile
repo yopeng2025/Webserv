@@ -9,6 +9,12 @@ OBJDIR	= obj
 
 SRCS 		= $(SRCDIR)/main.cpp \
 			  $(SRCDIR)/Config.cpp \
+			  $(SRCDIR)/Server.cpp \
+			  $(SRCDIR)/Client.cpp \
+			  $(SRCDIR)/Request.cpp \
+			  $(SRCDIR)/Response.cpp \
+			  $(SRCDIR)/CGI.cpp \
+			  $(SRCDIR)/Router.cpp \
 	   		  $(SRCDIR)/Utils.cpp
 
 OBJS 		= $(SRCS:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
