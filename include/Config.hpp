@@ -12,7 +12,7 @@ struct LocationConfig
     bool                        autoindex;
     std::string                 redirect;       // "301 /new"
     int                         redirectCode;
-    std::string                 uploadPath;
+    std::string                 uploadPath;     // "/upload"
     std::string                 cgiExtension;   // ".py"
     std::string                 cgiPath;        // "usr/bin/python3" 
 

@@ -8,11 +8,11 @@ Server::Server(const Config& config): _config(config), _running(false) {}
 
 Server::~Server() 
 {
-	for (std::map<int, Client*>::iterator it; it != _clients.end(); ++it)
+	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 		delete (it->second);
 	_clients.clear();
 
-	for (std::map<int, ListenSocket*>::iterator it; it != _listenSocket.end(); ++ it)
+	for (std::map<int, ListenSocket*>::iterator it = _listenSocket.begin(); it != _listenSocket.end(); ++ it)
 	{
 		close(it->first);
 		delete (it->second);
@@ -42,7 +42,7 @@ void Server::run()
     _createListenSockets();
 
     if (_listenSocket.empty())
-     throw std::runtime_error("No valid listen sockets created");
+    	throw std::runtime_error("No valid listen sockets created");
 
     _running = true;
     LOG_INFO("Server started successfully, entering main loop...");
@@ -55,7 +55,7 @@ void Server::run()
 void Server::_createListenSockets()
 {
     const std::vector<ServerConfig>& servers = _config.getServers();
-    // save created host:port pairs to avoid duplicates
+    // save created <host port> pairs to avoid duplicates
     // set: unique keys, sorted by alphabet
     std::set<std::pair<std::string, int> > createdSockets;
 
@@ -74,6 +74,7 @@ void Server::_createListenSockets()
         // fd = 0: stdin*
         // fd = 1: stdout
         // fd = 2: stderr
+		// fd > 2: valid socket
         if (fd >= 0)
         {
 			ListenSocket* ls = new ListenSocket();
@@ -154,7 +155,7 @@ int Server::_createSocket(const std::string& host, int port)
     // s_addr:      socket address; s: socket; addr: address
     // INADDR_ANY:  allows the server to accept connections on any of the host's IP addresses
     if (host == "0.0.0.0" || host.empty())
-        addr.sin_addr.s_addr = htonl(INADDR_ANY); 
+        addr.sin_addr.s_addr = INADDR_ANY; 
     
     else    // host = "192.168.1.100"
     {
@@ -167,7 +168,7 @@ int Server::_createSocket(const std::string& host, int port)
         // inet_addr returns INADDR_NONE (0xFFFFFFFF = 255.255.255.255), which is also a valid IPv4 broadcast address.
         if (addr.sin_addr.s_addr == INADDR_NONE)
         {
-            // addrinfo： structure used for address resolution
+            // addrinfo： structure used for address resolution （AddressInfo->AI）
             //            (ai_family, ai_socktype, ai_protocol, ai_addrlen, ai_addr, ai_canonname, ai_next ...)
             // hints:     input parameter to specify criteria for selecting socket address structures returned by getaddrinfo()
             // res:       output parameter to hold the linked list of addrinfo structures returned by getaddrinfo() on success
