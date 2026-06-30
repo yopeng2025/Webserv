@@ -242,7 +242,7 @@ bool	setNonBlocking(int clientFd)
 	if (flag == -1)
 		return (false);
 	// 设置non-blocking模式： 将原本的flag和O_NONBLOCK进行位或运算，得到新的flag，并设置回clientFd
-	if (fcntl(clientFd, F_SETFL, flag | O_NONBLOCK) == -1)
+	if (fcntl(clientFd, F_SETFL, flag | O_NONBLOCK) < 0)
 		return (false);
 	return (true);
 }
@@ -291,7 +291,7 @@ void	Server::_acceptConnection(int listenFd)
 	if (!setNonBlocking(clientFd))
 	{
 		LOG_ERROR("fcntl() failed on client fd");
-		
+		close (clientFd);
 		return ;
 	}
 
@@ -429,14 +429,15 @@ void	Server::_handlePollEvent()
 		if (isCGI)
 			continue ;
 
-		// 3. 检查是否有错误、挂断或无效等 并清除client
+		// 3. 剩余都是client socket的读写事件
+		// (1) 检查是否有错误、挂断或无效等 并清除client
 		if (revents & (POLLERR | POLLHUP | POLLNVAL))
 		{
 			_removeClient(fd);
 			continue ;
 		}
 
-		// 4. Client Socket的读和写 (前面已经处理好listen和CGI pipe，所以剩下的就是client socket)
+		// (2) 检查client是否有读写事件 并调用对应的处理函数
 		if (revents & POLLIN)
 			_handleClientRead(fd);
 			//检查 client是否还存在

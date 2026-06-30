@@ -2,7 +2,7 @@
 #include "Request.hpp"
 
 Client::Client(int fd, ListenSocket* ls)
-	: _fd(fd),
+	: 	_fd(fd),
 		_listen(ls), 
 		_server(NULL), 
 		_state(STATE_READING),
@@ -12,7 +12,7 @@ Client::Client(int fd, ListenSocket* ls)
 		_sendOffset(0),
 		_matchedServer(NULL),
 		_lastActivity(time(NULL)),
-    _keepAlive(false) {}
+    	_keepAlive(false) {}
 
 Client::~Client()
 {
@@ -66,7 +66,7 @@ bool Client::readData()
 	// TCP 把 request 切成很多块，服务器server必须自己用feed()将_raw拼回来
 	ssize_t bytesRead = recv(_fd, buffer, sizeof(buffer), 0);
 	if (bytesRead <= 0)
-	return false;
+		return false;
 
 	// 2. 更新时间戳
 	_lastActivity = time(NULL);

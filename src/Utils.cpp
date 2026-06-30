@@ -158,6 +158,7 @@ bool	Utils::decodeQuery(const std::string& str, std::string& out)
 	return (true);
 }
 
+// 规范化路径，有效地处理 . 和 ..（回到上一个文件夹），并删除多余的斜杠
 std::string Utils::sanitizePath(const std::string& path)
 {
 	std::vector<std::string> parts;

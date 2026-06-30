@@ -72,7 +72,7 @@ bool	Request::_parseUri()
 {
 	size_t qpos = _uri.find('?');
 
-	std::string pathPart = (qpos == std::string::npos) ? _uri : _uri.substr(0, _pos);
+	std::string pathPart = (qpos == std::string::npos) ? _uri : _uri.substr(0, qpos);
 	std::string queryPart = (qpos == std::string::npos) ? "" : _uri.substr(qpos + 1);
 
 	std::string path;
@@ -106,7 +106,7 @@ bool	Request::_parseRequestLine()
 	// ❗把_pos指向到下一行（end指向换行符 +2跳过换行符） 解析完整后统一erase_raw
 	_pos = end + 2;
 
-	// 2. 寻找第一个空格 填进methode
+	// 2. 寻找第一个空格 填进method
 	size_t sp1 = line.find(' ');
 	if (sp1 == std::string::npos)
     	return _setError(400);	// Bad request
@@ -278,7 +278,7 @@ bool	Request::_parseBody()
 // 5\r\n
 // pedia\r\n
 // 0\r\n
-// Header-After: value\r\n  <- trailer (optional)  也可以没有trailer
+// Header-After: value\r\n      <- trailer (optional)  也可以没有trailer
 // \r\n
 bool	Request::_parseTrailer()
 {
