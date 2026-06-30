@@ -232,7 +232,6 @@ void    Server::_addPollFd(int fd, short event)
     pfd.events = event;
     pfd.revents = 0;            // do not return any events yet (only set by poll() when events occur)
     _pollfds.push_back(pfd);
-	std::cout << "added poll fd: " << fd << std::endl;
 }
 
 bool	setNonBlocking(int clientFd)

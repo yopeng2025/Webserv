@@ -172,9 +172,9 @@ std::string Utils::sanitizePath(const std::string& path)
 		{
 			if (!parts.empty())
 				parts.pop_back();
-			else
-				parts.push_back(part);
 		}
+		else
+			parts.push_back(part);
 	}
 	std::string res = "/";
 	for (size_t i = 0; i < parts.size(); ++i)
@@ -290,7 +290,7 @@ std::string Utils::defaultErrorPage(int code)
 	std::string codeStr = Utils::toString(code);
 	std::string body = "<!DOCTYPE html>\n<html>\n<head><title>" + codeStr + " " + text +
 	                   "</title></head>\n<body>\n<center><h1>" + codeStr + " " + text +
-					   "</h1></center>\n<hr\n<center>" + SERVER_NAME + "</center>\n</body>\n</html>\n";
+					   "</h1></center>\n<hr>\n<center>" + SERVER_NAME + "</center>\n</body>\n</html>\n";
 	return (body);
 }
 

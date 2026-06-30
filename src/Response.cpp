@@ -101,7 +101,7 @@ void    Response::_buildResponse()
 
 	if (_headers.find("Content-Length") == _headers.end())
 	{
-		_data += "Content-Length";
+		_data += "Content-Length: ";
 		_data += Utils::toString(_body.size());
 		_data += "\r\n";
 	}
@@ -188,7 +188,7 @@ void Response::_handleGet(const Request& request, const ServerConfig& server, co
     // GET /www
     // path = "./www"
     std::string path = Router::resolvePath(request.getPath(), location);
-
+    
     // 是目录 /www
     if (Utils::isDirectory(path))
     {

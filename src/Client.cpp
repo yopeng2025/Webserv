@@ -48,9 +48,9 @@ void	Client::_checkKeepAlive()
 {
 	std::string connection = Utils::toLower(_request.getHeader("Connection"));
 	if (connection == "keep-alive")
-		_keepAlive = false;
-	else if (connection == "close")
 		_keepAlive = true;
+	else if (connection == "close")
+		_keepAlive = false;
 	else
 		// HTTP/1.1默认keep-alive HTTP/1.0默认close
 		_keepAlive = (_request.getVersion() == "HTTP/1.1");
@@ -88,8 +88,8 @@ bool Client::readData()
 			_checkKeepAlive();
 			_state = STATE_PROCESSING;
 			// [DEBUG]
-			std::cout << "Request complete\n";
-			std::cout << _request.getRaw();
+			// std::cout << "Request complete\n";
+			// std::cout << _request.getRaw();
 		}
 	}
 	return true;
@@ -136,7 +136,9 @@ bool Client::sendData()
 		else
 			_state = STATE_DONE; 
 	}
-
+	// [DEBUG]
+	// std::cout << "Data sent\n";
+	// std::cout << data << std::endl;
 	return true;
 }
 
