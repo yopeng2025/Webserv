@@ -232,6 +232,7 @@ void    Server::_addPollFd(int fd, short event)
     pfd.events = event;
     pfd.revents = 0;            // do not return any events yet (only set by poll() when events occur)
     _pollfds.push_back(pfd);
+	std::cout << "added poll fd: " << fd << std::endl;
 }
 
 bool	setNonBlocking(int clientFd)
@@ -363,7 +364,7 @@ void	Server::_updatePollEvent()
 		int fd = _pollfds[i].fd;
 		std::map<int, Client*>::iterator it = _clients.find(fd);
 		if (it == _clients.end())
-			return ;
+			continue ;
 		
 		Client* c = it->second;
 		short events = 0;
@@ -550,7 +551,6 @@ void	Server::_pollLoop()
 
 		// 4. 结束CGI 查看CGI是正常结束还是卡死超时
 		_checkCGI();
-
 		// 5. 查看HTTP是否超时
 		_checkTimeouts();
 

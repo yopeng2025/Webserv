@@ -29,6 +29,7 @@ class Request
 		const std::map<std::string, std::string>& getHeaders() const;
 		std::string			getHeader(const std::string& str) const;
 		const std::string&	getMethod() const;
+		const std::string&	getRaw() const;
 		const std::string&	getVersion() const;
 		const std::string&	getPath() const;
 		const std::string&	getQuery() const;

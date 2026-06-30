@@ -140,7 +140,7 @@ bool	Response::_checkMethod(const Request& req, const LocationConfig& location)
 {
 	// 405 比较特殊 需要加Allow header 所以走正常的buildResponse（builderror不能加额外的header）
 	std::string rMethod = req.getMethod();
-	if (location.methods.find(rMethod) != location.methods.end())
+	if (location.methods.find(rMethod) == location.methods.end())
 	{
 		std::string allow;
 		for (std::set<std::string>::const_iterator it = location.methods.begin(); it != location.methods.end(); ++it)
@@ -173,9 +173,9 @@ void	Response::build(const Request& req,
 
 	if (req.getMethod() == "GET")
 		_handleGet(req, server, location);
-	if (req.getMethod() == "POST")
+	else if (req.getMethod() == "POST")
 		_handlePost(req, server, location);
-	if (req.getMethod() == "DELETE")
+	else if (req.getMethod() == "DELETE")
 		_handleDelete(req, server, location);
 	else
 	// 理论上不会到这里，_parseRequestLine 已经过滤

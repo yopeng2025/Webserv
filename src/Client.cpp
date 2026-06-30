@@ -87,6 +87,9 @@ bool Client::readData()
 		{
 			_checkKeepAlive();
 			_state = STATE_PROCESSING;
+			// [DEBUG]
+			std::cout << "Request complete\n";
+			std::cout << _request.getRaw();
 		}
 	}
 	return true;
@@ -96,7 +99,7 @@ bool Client::sendData()
 {
 	// 1.  如果响应还没有准备好，继续等待
 	if (!_response.isReady())
-	return true;
+		return true;
 
 	// 2. 从响应对象获取要发送的数据
 	const std::string& data = _response.getData();
@@ -115,7 +118,7 @@ bool Client::sendData()
 	// send() returns the number of bytes actually sent, which may be less than remainData
 	ssize_t bytesSent = send(_fd, data.c_str() + _sendOffset, remainData, 0);
 	if (bytesSent <= 0)
-	return false;
+		return false;
 
 	_sendOffset += bytesSent;     // 更新已发送的字节数
 	_lastActivity = time(NULL);   // 更新时间戳

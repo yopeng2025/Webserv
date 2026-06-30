@@ -127,7 +127,7 @@ bool	Request::_parseRequestLine()
 	if (_method.empty() || _uri.empty() || _uri[0] != '/' || _version.empty())
     	return _setError(400);	// Bad request
 
-	if (_method != "GET" &&  _method != "POST" && _method != "DELETE")
+	if (_method != "GET" && _method != "POST" && _method != "DELETE")
     	return _setError(501);	// Not Implemented
 
 
@@ -363,6 +363,7 @@ std::string	Request::getHeader(const std::string& str) const
 
 const std::map<std::string, std::string>& Request::getHeaders()  const { return _headers; }
 const std::string& Request::getMethod() const { return _method; }
+const std::string& Request::getRaw() const { return _raw; }
 const std::string& Request::getVersion() const { return _version; }
 const std::string& Request::getQuery() const { return _query; }
 const std::string& Request::getPath() const { return _path; }
