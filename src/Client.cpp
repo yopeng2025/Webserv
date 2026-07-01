@@ -44,6 +44,13 @@ bool Client::hasTimeout() const
   return ((time(NULL) - _lastActivity) >= CLIENT_TIMEOUT);
 }
 
+/*
+GET /index.html HTTP/1.1
+Host: localhost:8080
+Connection: keep-alive
+User-Agent: Mozilla/5.0
+Accept: text/html
+*/
 void	Client::_checkKeepAlive()
 {
 	std::string connection = Utils::toLower(_request.getHeader("Connection"));
@@ -181,6 +188,12 @@ void Client::process(const Config& config)
   }
 
   std::string resolvePath = Router::resolvePath(_request.getPath(), *location); // 根据location config的root和index以及请求的URI，解析出要访问的文件路径
+//   std::cout << "Request URI: " << _request.getPath() << std::endl; 
+//   std::cout << "Resolved path: " << resolvePath << std::endl;
+//   std::cout << endl;
+	// Request URI: /
+	// Resolved path: www
+
   if (Router::isCGI(*location, resolvePath))
   {
     _cgi = new CGI();

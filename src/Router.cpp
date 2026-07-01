@@ -11,7 +11,7 @@ std::string Router::resolvePath(const std::string& uri, const LocationConfig& lo
         relativePath = relativePath.substr(location.path.length()); // images/logo.png -> /logo.png
     
     while (!relativePath.empty() && relativePath[0] == '/')
-        relativePath = relativePath. substr(1);                     // /logo.png -> logo.png 去除/     
+        relativePath = relativePath.substr(1);                     // /logo.png -> logo.png 去除/     
     
     std::string resolvedPath = Utils::joinPath(location.root, relativePath);
     

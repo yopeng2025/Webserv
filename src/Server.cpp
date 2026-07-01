@@ -23,7 +23,7 @@ Server::~Server()
 
 void signalHandler(int sig)
 {
-    std::cout << "Signal " << sig << " received, shutting down server..." << std::endl;
+    std::cout << "\nSignal " << sig << " received, shutting down server..." << std::endl;
     g_running = false;
 }
 
