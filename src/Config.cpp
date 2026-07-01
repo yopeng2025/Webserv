@@ -34,10 +34,14 @@ const LocationConfig* ServerConfig::findLocation(const std::string& uri) const
         // e.g. locationPath = "/images/logo" is a better match than locationPath = "/images"
         if (Utils::startsWith(uri, locationPath))  
         {
-            if (locationPath.length() > bestMatchLength) 
+            // 检查uri后面是“/”而不是乱七八糟的也匹配上了
+            if (locationPath == "/" || uri.size() == locationPath.size() || uri[locationPath.size()] == '/')
             {
-                bestMatch = &locations[i];
-                bestMatchLength = locationPath.length();
+                if (locationPath.length() > bestMatchLength) 
+                {
+                    bestMatch = &locations[i];
+                    bestMatchLength = locationPath.length();
+                }
             }
         }
     }

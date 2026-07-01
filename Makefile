@@ -1,7 +1,7 @@
-NAME 		= weberv
+NAME 		= webserv
 
 CXX 		= c++
-CXXFLAGS 		= -Wall -Wextra -Werror -std=c++98
+CXXFLAGS 		= -Wall -Wextra -Werror -g -std=c++98
 
 SRCDIR	= src
 INCDIR	= include
