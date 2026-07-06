@@ -32,10 +32,12 @@ $(OBJDIR):
 
 clean:
 	rm -rf $(OBJDIR)
+	-@pkill -9 $(NAME) 2>/dev/null || true
 
 fclean: clean
-	rm -rf $(NAME)
+	rm -f $(NAME)
 
-re: fclean all
+re: fclean 
+	$(MAKE) all
 
 .PHONY: all clean fclean re

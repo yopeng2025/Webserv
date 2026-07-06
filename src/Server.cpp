@@ -415,12 +415,12 @@ void	Server::_handlePollEvent()
 				{
 					// 不管是读还是挂断 都去读完然后看是否finish
 					if (revents & POLLIN || revents & POLLHUP)
-						_handleCGIRead(it->first);
+						_handleCGIRead(fd);
 				}
 				else if (fd == cgi->getInputFd())
 				{
 					if (revents & POLLOUT)
-						_handleCGIWrite(it->first);
+						_handleCGIWrite(fd);
 				}
 				isCGI = true;
 			}
