@@ -193,7 +193,6 @@ void Client::process(const Config& config)
 // Resolved path: www
 //   std::cout << "Request URI: " << _request.getPath() << std::endl; 
 //   std::cout << "Resolved path: " << resolvePath << std::endl;
-//   std::cout << endl;
 
 
   if (Router::isCGI(*location, resolvePath))

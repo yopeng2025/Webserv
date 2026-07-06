@@ -221,7 +221,7 @@ body {
 	font-size: 32px;
 	font-weight: 700;
 	letter-spacing: -0.5px;
-	color: var(--text);
+	color: var(--te);
 	margin-bottom: 8px;
 }
 
@@ -399,121 +399,133 @@ pre {
 </style>
 </head>
 <body>
-	<div class="container">
 
-		<!-- Header -->
-		<div class="header">
-			<div class="badge"><span class="status on"></span> C++98 HTTP Server</div>
-			<h1>Webserv</h1>
-			<p class="subtitle">A lightweight HTTP/1.1 server built from scratch with poll(), non-blocking I/O, and CGI support.</p>
-		</div>
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">Webserv</div>
+    <div class="sidebar-version">&#9679; C++98 · HTTP/1.1</div>
+  </div>
 
-		<!-- Features -->
-		<div class="card">
-			<h2>Endpoints</h2>
-			<div class="features">
-				<a href="/files/" class="feature-link">
-					<span class="icon">&#128193;</span>
-					<div>
-						<span class="label">Directory Listing</span>
-						<span class="desc">autoindex on /files/</span>
-					</div>
-				</a>
-				<a href="/upload/" class="feature-link">
-					<span class="icon">&#128228;</span>
-					<div>
-						<span class="label">Upload Files</span>
-						<span class="desc">POST multipart + autoindex</span>
-					</div>
-				</a>
-				<a href="/cgi-bin/hello.py" class="feature-link">
-					<span class="icon">&#9881;</span>
-					<div>
-						<span class="label">CGI Python</span>
-						<span class="desc">/cgi-bin/hello.py</span>
-					</div>
-				</a>
-				<a href="/cgi-sh/hello.sh" class="feature-link">
-					<span class="icon">&#9881;</span>
-					<div>
-						<span class="label">CGI Bash</span>
-						<span class="desc">/cgi-sh/hello.sh</span>
-					</div>
-				</a>
-				<a href="/cgi-pl/hello.pl" class="feature-link">
-					<span class="icon">&#9881;</span>
-					<div>
-						<span class="label">CGI Perl</span>
-						<span class="desc">/cgi-pl/hello.pl</span>
-					</div>
-				</a>
-				<a href="/cgi-bin/env.py" class="feature-link">
-					<span class="icon">&#128196;</span>
-					<div>
-						<span class="label">CGI Environment</span>
-						<span class="desc">All env variables</span>
-					</div>
-				</a>
-				<a href="/old-page" class="feature-link">
-					<span class="icon">&#8634;</span>
-					<div>
-						<span class="label">Redirect Test</span>
-						<span class="desc">301 /old-page -> /</span>
-					</div>
-				</a>
-				<a href="/nonexistent" class="feature-link">
-					<span class="icon">&#10060;</span>
-					<div>
-						<span class="label">404 Error Test</span>
-						<span class="desc">Custom error page</span>
-					</div>
-				</a>
-			</div>
-		</div>
+  <div class="nav-section">Navigation</div>
+  <a href="/" class="nav-item active">
+    <div class="nav-dot purple"></div> Overview
+  </a>
+  <a href="/files/" class="nav-item">
+    <div class="nav-dot green"></div> Files
+  </a>
+  <a href="/upload/" class="nav-item">
+    <div class="nav-dot green"></div> Upload
+  </a>
 
-		<!-- Upload Form -->
-		<div class="card">
-			<h2>File Upload</h2>
-			<form action="/upload" method="POST" enctype="multipart/form-data">
-				<div class="form-group">
-					<input type="file" name="file" required>
-					<button type="submit">Upload</button>
-				</div>
-			</form>
-		</div>
+  <div class="nav-section">CGI</div>
+  <a href="/cgi-bin/hello.py" class="nav-item">
+    <div class="nav-dot yellow"></div> Python
+  </a>
+  <a href="/cgi-sh/hello.sh" class="nav-item">
+    <div class="nav-dot yellow"></div> Bash
+  </a>
+  <a href="/cgi-pl/hello.pl" class="nav-item">
+    <div class="nav-dot yellow"></div> Perl
+  </a>
 
-		<!-- CGI Form -->
-		<div class="card">
-			<h2>CGI Form Test</h2>
-			<form action="/cgi-bin/form.py" method="POST">
-				<div class="form-group">
-					<label for="name">Name</label>
-					<input type="text" id="name" name="name" value="World" placeholder="Enter a name...">
-					<button type="submit">Submit</button>
-				</div>
-			</form>
-		</div>
+  <div class="nav-section">Tests</div>
+  <a href="/old-page" class="nav-item">
+    <div class="nav-dot purple"></div> Redirect
+  </a>
+  <a href="/nonexistent" class="nav-item">
+    <div class="nav-dot orange"></div> 404 Error
+  </a>
 
-		<!-- Delete Info -->
-		<div class="card">
-			<h2>DELETE Method</h2>
-			<pre>curl -X DELETE http://localhost:8080/upload/filename</pre>
-		</div>
+  <div class="sidebar-footer">
+    <div class="status-badge">
+      <div class="status-dot"></div>
+      listening :8081
+    </div>
+  </div>
+</div>
 
-		<!-- Architecture -->
-		<div class="card">
-			<h2>Architecture</h2>
-			<pre>poll() loop ── accept ── recv ── parse ── route ── respond ── send
+<div class="content">
+  <div class="header">
+    <div class="badge"><span class="status on"></span> C++98 HTTP Server</div>
+    <h1>Webserv</h1>
+    <p class="subtitle">A lightweight HTTP/1.1 server built from scratch with poll(), non-blocking I/O, and CGI support.</p>
+  </div>
+
+  <div class="section-title">Endpoints</div>
+  <div class="endpoint-grid">
+    <a href="/files/" class="endpoint">
+      <div class="ep-method get">GET</div>
+      <div class="ep-path">/files/</div>
+      <div class="ep-desc">directory listing · autoindex on</div>
+    </a>
+    <a href="/upload/" class="endpoint">
+      <div class="ep-method post">POST</div>
+      <div class="ep-path">/upload/</div>
+      <div class="ep-desc">multipart/form-data upload</div>
+    </a>
+    <a href="/cgi-bin/hello.py" class="endpoint">
+      <div class="ep-method cgi">CGI</div>
+      <div class="ep-path">/cgi-bin/hello.py</div>
+      <div class="ep-desc">python script</div>
+    </a>
+    <a href="/cgi-sh/hello.sh" class="endpoint">
+      <div class="ep-method cgi">CGI</div>
+      <div class="ep-path">/cgi-sh/hello.sh</div>
+      <div class="ep-desc">bash script</div>
+    </a>
+    <a href="/cgi-pl/hello.pl" class="endpoint">
+      <div class="ep-method cgi">CGI</div>
+      <div class="ep-path">/cgi-pl/hello.pl</div>
+      <div class="ep-desc">perl script</div>
+    </a>
+    <a href="/cgi-bin/env.py" class="endpoint">
+      <div class="ep-method cgi">CGI</div>
+      <div class="ep-path">/cgi-bin/env.py</div>
+      <div class="ep-desc">all env variables</div>
+    </a>
+    <a href="/old-page" class="endpoint">
+      <div class="ep-method redir">301</div>
+      <div class="ep-path">/old-page</div>
+      <div class="ep-desc">redirect → /</div>
+    </a>
+    <a href="/nonexistent" class="endpoint">
+      <div class="ep-method del">404</div>
+      <div class="ep-path">/nonexistent</div>
+      <div class="ep-desc">custom error page</div>
+    </a>
+  </div>
+
+  <div class="section-title">File Upload</div>
+  <div class="card">
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+      <div class="form-group">
+        <input type="file" name="file" required>
+        <button type="submit">Upload</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="section-title">CGI Form Test</div>
+  <div class="card">
+    <form action="/cgi-bin/form.py" method="POST">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" value="World" placeholder="Enter a name...">
+        <button type="submit">Submit</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="section-title">DELETE Method</div>
+  <pre>curl -X DELETE http://localhost:8080/upload/filename</pre>
+
+  <div class="section-title">Architecture</div>
+  <pre>poll() loop ── accept ── recv ── parse ── route ── respond ── send
     |                                        |
     +──── CGI pipes (fork + execve) ─────────+</pre>
-		</div>
 
-		<hr>
+  <div class="footer">Webserv/1.0</div>
+</div>
 
-		<div class="footer">
-			<span>Webserv/1.0</span>
-		</div>
-
-	</div>
 </body>
 </html>
