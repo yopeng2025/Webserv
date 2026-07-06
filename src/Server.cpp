@@ -498,7 +498,7 @@ void	Server::_checkTimeouts()
 	std::vector<int> timeOut;
 	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
-		if (it->second->getState() == Client::STATE_CGI_RUNNING && it->second->hasTimeout())
+		if (it->second->getState() != Client::STATE_CGI_RUNNING && it->second->hasTimeout())
 			timeOut.push_back(it->first);
 	}
 	for (size_t i = 0; i < timeOut.size(); ++i)

@@ -1,3 +1,5 @@
 tester
 cgi_tester
 *.o
+webserv
+obj/*
