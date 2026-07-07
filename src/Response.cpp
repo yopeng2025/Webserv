@@ -153,6 +153,7 @@ bool	Response::_checkMethod(const Request& req, const LocationConfig& location)
 		_headers["Allow"] = allow;
 		_statusCode = 405;
 		_body = Utils::defaultErrorPage(_statusCode);
+        _buildResponse();
 		return (false);
 	}
 	return (true);
