@@ -6,57 +6,6 @@
 <title>Webserv</title>
 <style>
 
-/* 深色科技风 */
-/* :root {
-	--bg: #0a0a0f;
-	--surface: #12121a;
-	--surface-2: #1a1a26;
-	--border: #2a2a3a;
-	--text: #e4e4ef;
-	--text-dim: #8888a0;
-	--accent: #6c5ce7;
-	--accent-glow: rgba(108, 92, 231, 0.15);
-	--success: #00b894;
-	--danger: #e17055;
-	--warn: #e3b341;
-	--radius: 12px;
-	--mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-} */
-
-/* 薄荷青 */
-/* :root {
-	--bg: #f6faf8;
-	--surface: #ffffff;
-	--surface-2: #eef5f1;
-	--border: #d9e7e0;
-	--text: #1f3d33;
-	--text-dim: #6b8a7d;
-	--accent: #10a37f;
-	--accent-glow: rgba(16, 163, 127, 0.12);
-	--success: #16a34a;
-	--danger: #e0704f;
-	--warn: #d9a021;
-	--radius: 12px;
-	--mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-} */
-
-/* 晴空蓝 */
-/* :root {
-	--bg: #f5f9fc;
-	--surface: #ffffff;
-	--surface-2: #eaf2f8;
-	--border: #d6e4ee;
-	--text: #1e3a5f;
-	--text-dim: #6d8aa5;
-	--accent: #2f86d6;
-	--accent-glow: rgba(47, 134, 214, 0.12);
-	--success: #2f9e6e;
-	--danger: #e2694e;
-	--warn: #c08a1e;
-	--radius: 12px;
-	--mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-} */
-
 /* 薰衣草 */
 :root {
 	--bg: #faf9fc;
@@ -221,7 +170,7 @@ body {
 	font-size: 32px;
 	font-weight: 700;
 	letter-spacing: -0.5px;
-	color: var(--text);
+	color: var(--te);
 	margin-bottom: 8px;
 }
 
@@ -372,6 +321,28 @@ label {
 	white-space: nowrap;
 }
 
+/* ─── Delete result ─── */
+.delete-result {
+	margin-top: 12px;
+	padding: 10px 14px;
+	border-radius: 8px;
+	font-size: 13px;
+	font-family: var(--mono);
+	display: none;
+}
+
+.delete-result.success {
+	background: rgba(47, 169, 132, 0.1);
+	border: 1px solid rgba(47, 169, 132, 0.3);
+	color: var(--success);
+}
+
+.delete-result.error {
+	background: rgba(225, 112, 85, 0.1);
+	border: 1px solid rgba(225, 112, 85, 0.3);
+	color: var(--danger);
+}
+
 /* ─── Code ─── */
 pre {
 	font-family: var(--mono);
@@ -399,121 +370,199 @@ pre {
 </style>
 </head>
 <body>
-	<div class="container">
 
-		<!-- Header -->
-		<div class="header">
-			<div class="badge"><span class="status on"></span> C++98 HTTP Server</div>
-			<h1>Webserv</h1>
-			<p class="subtitle">A lightweight HTTP/1.1 server built from scratch with poll(), non-blocking I/O, and CGI support.</p>
-		</div>
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">Webserv</div>
+    <div class="sidebar-version">&#9679; C++98 · HTTP/1.1</div>
+  </div>
 
-		<!-- Features -->
-		<div class="card">
-			<h2>Endpoints</h2>
-			<div class="features">
-				<a href="/files/" class="feature-link">
-					<span class="icon">&#128193;</span>
-					<div>
-						<span class="label">Directory Listing</span>
-						<span class="desc">autoindex on /files/</span>
-					</div>
-				</a>
-				<a href="/upload/" class="feature-link">
-					<span class="icon">&#128228;</span>
-					<div>
-						<span class="label">Upload Files</span>
-						<span class="desc">POST multipart + autoindex</span>
-					</div>
-				</a>
-				<a href="/cgi-bin/hello.py" class="feature-link">
-					<span class="icon">&#9881;</span>
-					<div>
-						<span class="label">CGI Python</span>
-						<span class="desc">/cgi-bin/hello.py</span>
-					</div>
-				</a>
-				<a href="/cgi-sh/hello.sh" class="feature-link">
-					<span class="icon">&#9881;</span>
-					<div>
-						<span class="label">CGI Bash</span>
-						<span class="desc">/cgi-sh/hello.sh</span>
-					</div>
-				</a>
-				<a href="/cgi-pl/hello.pl" class="feature-link">
-					<span class="icon">&#9881;</span>
-					<div>
-						<span class="label">CGI Perl</span>
-						<span class="desc">/cgi-pl/hello.pl</span>
-					</div>
-				</a>
-				<a href="/cgi-bin/env.py" class="feature-link">
-					<span class="icon">&#128196;</span>
-					<div>
-						<span class="label">CGI Environment</span>
-						<span class="desc">All env variables</span>
-					</div>
-				</a>
-				<a href="/old-page" class="feature-link">
-					<span class="icon">&#8634;</span>
-					<div>
-						<span class="label">Redirect Test</span>
-						<span class="desc">301 /old-page -> /</span>
-					</div>
-				</a>
-				<a href="/nonexistent" class="feature-link">
-					<span class="icon">&#10060;</span>
-					<div>
-						<span class="label">404 Error Test</span>
-						<span class="desc">Custom error page</span>
-					</div>
-				</a>
-			</div>
-		</div>
+  <div class="nav-section">Navigation</div>
+  <a href="/" class="nav-item active">
+    <div class="nav-dot purple"></div> Overview
+  </a>
+  <a href="/files/" class="nav-item">
+    <div class="nav-dot green"></div> Files
+  </a>
+  <a href="/upload/" class="nav-item">
+    <div class="nav-dot green"></div> Upload
+  </a>
 
-		<!-- Upload Form -->
-		<div class="card">
-			<h2>File Upload</h2>
-			<form action="/upload" method="POST" enctype="multipart/form-data">
-				<div class="form-group">
-					<input type="file" name="file" required>
-					<button type="submit">Upload</button>
-				</div>
-			</form>
-		</div>
+  <div class="nav-section">CGI</div>
+  <a href="/cgi-bin/hello.py" class="nav-item">
+    <div class="nav-dot yellow"></div> Python
+  </a>
+  <a href="/cgi-sh/hello.sh" class="nav-item">
+    <div class="nav-dot yellow"></div> Bash
+  </a>
+  <a href="/cgi-pl/hello.pl" class="nav-item">
+    <div class="nav-dot yellow"></div> Perl
+  </a>
 
-		<!-- CGI Form -->
-		<div class="card">
-			<h2>CGI Form Test</h2>
-			<form action="/cgi-bin/form.py" method="POST">
-				<div class="form-group">
-					<label for="name">Name</label>
-					<input type="text" id="name" name="name" value="World" placeholder="Enter a name...">
-					<button type="submit">Submit</button>
-				</div>
-			</form>
-		</div>
+  <div class="nav-section">Tests</div>
+  <a href="/old-page" class="nav-item">
+    <div class="nav-dot purple"></div> Redirect
+  </a>
+  <a href="/nonexistent" class="nav-item">
+    <div class="nav-dot orange"></div> 404 Error
+  </a>
 
-		<!-- Delete Info -->
-		<div class="card">
-			<h2>DELETE Method</h2>
-			<pre>curl -X DELETE http://localhost:8080/upload/filename</pre>
-		</div>
+  <div class="sidebar-footer">
+    <div class="status-badge">
+      <div class="status-dot"></div>
+      listening :8080
+    </div>
+  </div>
+</div>
 
-		<!-- Architecture -->
-		<div class="card">
-			<h2>Architecture</h2>
-			<pre>poll() loop ── accept ── recv ── parse ── route ── respond ── send
+<div class="content">
+  <div class="header">
+    <div class="badge"><span class="status on"></span> C++98 HTTP Server</div>
+    <h1>Webserv</h1>
+    <p class="subtitle">A lightweight HTTP/1.1 server built from scratch with poll(), non-blocking I/O, and CGI support.</p>
+  </div>
+
+  <div class="section-title">Endpoints</div>
+  <div class="endpoint-grid">
+    <a href="/files/" class="endpoint">
+      <div class="ep-method get">GET</div>
+      <div class="ep-path">/files/</div>
+      <div class="ep-desc">directory listing · autoindex on</div>
+    </a>
+    <a href="/upload/" class="endpoint">
+      <div class="ep-method post">POST</div>
+      <div class="ep-path">/upload/</div>
+      <div class="ep-desc">multipart/form-data upload</div>
+    </a>
+    <a href="/cgi-bin/hello.py" class="endpoint">
+      <div class="ep-method cgi">CGI</div>
+      <div class="ep-path">/cgi-bin/hello.py</div>
+      <div class="ep-desc">python script</div>
+    </a>
+    <a href="/cgi-sh/hello.sh" class="endpoint">
+      <div class="ep-method cgi">CGI</div>
+      <div class="ep-path">/cgi-sh/hello.sh</div>
+      <div class="ep-desc">bash script</div>
+    </a>
+    <a href="/cgi-pl/hello.pl" class="endpoint">
+      <div class="ep-method cgi">CGI</div>
+      <div class="ep-path">/cgi-pl/hello.pl</div>
+      <div class="ep-desc">perl script</div>
+    </a>
+    <a href="/cgi-bin/env.py" class="endpoint">
+      <div class="ep-method cgi">CGI</div>
+      <div class="ep-path">/cgi-bin/env.py</div>
+      <div class="ep-desc">all env variables</div>
+    </a>
+    <a href="/old-page" class="endpoint">
+      <div class="ep-method redir">301</div>
+      <div class="ep-path">/old-page</div>
+      <div class="ep-desc">redirect → /</div>
+    </a>
+    <a href="/nonexistent" class="endpoint">
+      <div class="ep-method del">404</div>
+      <div class="ep-path">/nonexistent</div>
+      <div class="ep-desc">custom error page</div>
+    </a>
+  </div>
+
+  <div class="section-title">File Upload</div>
+  <div class="card">
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+      <div class="form-group">
+        <input type="file" name="file" required>
+        <button type="submit">Upload</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="section-title">CGI Form Test</div>
+  <div class="card">
+    <form action="/cgi-bin/form.py" method="POST">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" value="World" placeholder="Enter a name...">
+        <button type="submit">Submit</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="section-title">DELETE Method</div>
+  <div class="card">
+    <div class="form-group">
+      <label>File</label>
+      <input type="text" id="delete-input" placeholder="filename (e.g. test.txt)">
+      <button class="danger" onclick="deleteFile()">Delete</button>
+    </div>
+    <div id="delete-result" class="delete-result"></div>
+  </div>
+
+
+  <div class="section-title">Architecture</div>
+  <pre>poll() loop ── accept ── recv ── parse ── route ── respond ── send
     |                                        |
     +──── CGI pipes (fork + execve) ─────────+</pre>
-		</div>
 
-		<hr>
+  <div class="section-title">Test Commands</div>
+<pre># Basic GET 
+curl -v http://localhost:8080/
 
-		<div class="footer">
-			<span>Webserv/1.0</span>
-		</div>
+# Upload a file
+curl -X POST http://localhost:8080/upload -F "file=@test.txt"
 
-	</div>
+# Delete a file
+curl -X DELETE http://localhost:8080/upload/test.txt
+
+# CGI POST
+curl -X POST http://localhost:8080/cgi-bin/form.py -d "name=world"
+
+# Trigger 404
+curl http://localhost:8080/nonexistent
+
+# Trigger 414 (URI too long)
+curl "http://localhost:8080/$(python3 -c 'print("a"*10000)')"
+
+# Stress test
+siege -c 100 -t 30s http://127.0.0.1:8080/</pre>
+
+  <div class="footer">Webserv/1.0</div>
+</div>
+
+<script>
+function deleteFile() {
+  var filename = document.getElementById('delete-input').value.trim();
+  var result = document.getElementById('delete-result');
+
+  if (!filename) {
+    result.className = 'delete-result error';
+    result.style.display = 'block';
+    result.textContent = 'Please enter a filename.';
+    return;
+  }
+
+  fetch('/upload/' + filename, { method: 'DELETE' })
+    .then(function(response) {
+      result.style.display = 'block';
+      if (response.ok) {
+        result.className = 'delete-result success';
+        result.textContent = '✓ Deleted: /upload/' + filename;
+        document.getElementById('delete-input').value = '';
+      } else {
+        result.className = 'delete-result error';
+        result.textContent = '✗ Failed: ' + response.status + ' ' + response.statusText;
+      }
+    })
+    .catch(function(err) {
+      result.style.display = 'block';
+      result.className = 'delete-result error';
+      result.textContent = '✗ Error: ' + err;
+    });
+}
+
+document.getElementById('delete-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') deleteFile();
+});
+</script>
+
 </body>
 </html>

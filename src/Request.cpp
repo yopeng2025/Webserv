@@ -93,13 +93,13 @@ bool	Request::_parseRequestLine()
 	if (end == std::string::npos)
 	{
 		if (_raw.size() > MAX_REQUEST_LINE)
-    		return _setError(400);	// Bad request
+    		return _setError(414);	// Bad request
 
 		// 没读到一整行 下次再读
 		return (false);
 	}
 	if (end - _pos + 1 > MAX_REQUEST_LINE)
-    	return _setError(400);	// Bad request
+    	return _setError(414);	// Bad request
 
 	// 拷贝这一行
 	std::string line = _raw.substr(_pos, end - _pos);
@@ -135,7 +135,10 @@ bool	Request::_parseRequestLine()
     	return _setError(505);	//  HTTP Version Not Supported
 
 	if (_uri.size() > MAX_URI_LENTH)
+	{
+		std::cout << "URI: " << _uri << std::endl;
     	return _setError(414);	// URI Too Long
+	}
 
 	if(!_parseUri())
     	return _setError(400);	// Bad request

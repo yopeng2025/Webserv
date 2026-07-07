@@ -157,7 +157,10 @@ std::vector<std::string> CGI::_buildEnvironment(const Request& request,
 	env.push_back("REQUEST_METHOD=" + request.getMethod());
 	env.push_back("QUERY_STRING=" + request.getQuery());
 	env.push_back("CONTENT_TYPE=" + request.getHeader("Content-Type"));
-	env.push_back("CONTENT_LENGTH=" + request.getHeader("Content-Length"));
+	std::string contentLength = request.getHeader("Content-Length");
+	if (contentLength.empty())
+		contentLength = "0";
+	env.push_back("CONTENT_LENGTH=" + contentLength);
 	env.push_back("SCRIPT_NAME=" + request.getPath());
 	env.push_back("SCRIPT_FILENAME=" + absoluteScriptPath);
 	env.push_back("PATH_INFO=" + request.getPath());
