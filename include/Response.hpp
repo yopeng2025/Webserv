@@ -28,6 +28,7 @@ class Response
 		std::string							_body;
 		int									_statusCode;
 		bool								_keepAlive;
+		bool								_head;
 
 		bool		_checkMethod(const Request& req, const LocationConfig& location);
 		void		_buildResponse();

@@ -127,9 +127,8 @@ bool	Request::_parseRequestLine()
 	if (_method.empty() || _uri.empty() || _uri[0] != '/' || _version.empty())
     	return _setError(400);	// Bad request
 
-	if (_method != "GET" && _method != "POST" && _method != "DELETE")
+	if (_method != "GET" && _method != "POST" && _method != "DELETE" && _method != "HEAD")
     	return _setError(501);	// Not Implemented
-
 
 	if (_version != "HTTP/1.0" && _version != "HTTP/1.1")
     	return _setError(505);	//  HTTP Version Not Supported
@@ -144,6 +143,7 @@ bool	Request::_parseRequestLine()
     	return _setError(400);	// Bad request
 
 	_state = PARSE_HEADERS;
+	std::cout << "[debug]" << _method << std::endl;
 	return (true);
 }
 

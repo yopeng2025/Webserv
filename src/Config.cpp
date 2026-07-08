@@ -7,6 +7,7 @@ LocationConfig::LocationConfig():
     path("/"), root(""), index(""), autoindex(false),
     redirectCode(0), cgiExtension(""), cgiPath("")
 {
+    methods.insert("HEAD");
     methods.insert("GET");
     methods.insert("POST");
     methods.insert("DELETE");
@@ -142,6 +143,38 @@ void Config::_expectToken(const std::string& expected)  // 返回值改为void, 
         throw std::runtime_error("Expected '" + expected + "', but got '" + token + "'");
 }
 
+void	Config::_clientMaxBody(ServerConfig& server)
+{
+	std::string size = _nextToken();
+	size_t      multiplier = 1;
+	if (size[size.size() - 1] == 'k' || size[size.size() - 1] == 'K')
+	{
+		multiplier = 1024;
+		size = size.substr(0, size.size() - 1);             // Remove the 'k' or 'K' suffix before converting to number
+	}
+	else if (size[size.size() - 1] == 'm' || size[size.size() - 1] == 'M')
+	{
+		multiplier = 1024 * 1024;
+		size = size.substr(0, size.size() - 1);
+	}
+	else if (size[size.size() - 1] == 'g' || size[size.size() - 1] == 'G')
+	{
+		multiplier = 1024 * 1024 * 1024;
+		size = size.substr(0, size.size() - 1);
+	}
+	else if (size[size.size() - 1] >= '0' && size[size.size() - 1] <= '9')
+		multiplier = 1;
+	else
+		throw std::runtime_error("Invalid client_max_body_size value: " + size);
+	size_t sizeNum;
+	if (!Utils::toSizeT(size, sizeNum))
+		throw std::runtime_error("Invalide size_t value: " + size);
+	if (sizeNum > std::numeric_limits<size_t>::max() / multiplier)
+		throw std::runtime_error("client_max_body_size value is too large: " + size);
+	server.clientMaxBody = sizeNum * multiplier;
+	_expectToken(";");
+}
+
 void Config::_parseServer()
 {
     _expectToken("{");
@@ -172,37 +205,8 @@ void Config::_parseServer()
                 server.serverNames.push_back(name);
             }
         }
-        else if (token  == "client_max_body_size")
-        {
-            std::string size = _nextToken();
-            size_t      multiplier = 1;
-            if (size[size.size() - 1] == 'k' || size[size.size() - 1] == 'K')
-            {
-                multiplier = 1024;
-                size = size.substr(0, size.size() - 1);             // Remove the 'k' or 'K' suffix before converting to number
-            }
-            else if (size[size.size() - 1] == 'm' || size[size.size() - 1] == 'M')
-            {
-                multiplier = 1024 * 1024;
-                size = size.substr(0, size.size() - 1);
-            }
-            else if (size[size.size() - 1] == 'g' || size[size.size() - 1] == 'G')
-            {
-                multiplier = 1024 * 1024 * 1024;
-                size = size.substr(0, size.size() - 1);
-            }
-            else if (size[size.size() - 1] >= '0' && size[size.size() - 1] <= '9')
-                multiplier = 1;
-            else
-                throw std::runtime_error("Invalid client_max_body_size value: " + size);
-            size_t sizeNum;
-            if (!Utils::toSizeT(size, sizeNum))
-                throw std::runtime_error("Invalide size_t value: " + size);
-            if (sizeNum > std::numeric_limits<size_t>::max() / multiplier)
-                throw std::runtime_error("client_max_body_size value is too large: " + size);
-            server.clientMaxBody = sizeNum * multiplier;
-            _expectToken(";");
-        }
+        else if (token == "client_max_body_size")
+            _clientMaxBody(server);
         else if (token == "error_page")
         {
             std::string codeStr = _nextToken();
@@ -345,6 +349,8 @@ void Config::_parseLocation(ServerConfig& server)
             location.redirect = _nextToken();
             _expectToken(";");
         }
+        else if (token == "client_max_body_size")
+            _clientMaxBody(server);
         else
             throw std::runtime_error("Unknown directive in location block: '" + token + "'");
     }

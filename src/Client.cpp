@@ -95,8 +95,8 @@ bool Client::readData()
 			_checkKeepAlive();
 			_state = STATE_PROCESSING;
 			// [DEBUG]
-			// std::cout << "Request complete\n";
-			// std::cout << _request.getRaw();
+			std::cout << "Request complete\n";
+			std::cout << _request.getRaw();
 		}
 	}
 	return true;
@@ -213,6 +213,7 @@ void Client::process(const Config& config)
   }
   _response.setKeepAlive(_keepAlive);
   _response.build(_request, *server, *location);
+  std::cout << _response.getData();
   _state = STATE_SENDING;
 }
 

@@ -46,7 +46,7 @@ Connetction: close
 
 */
 
-Response::Response(): _ready(false), _statusCode(0), _keepAlive(false) {}
+Response::Response(): _ready(false), _statusCode(0), _keepAlive(false), _head(false) {}
 
 Response::~Response() {}
 
@@ -58,6 +58,7 @@ void	Response::reset()
 	_body.clear();
 	_statusCode = 0;;
 	_keepAlive = false;
+    _head = false;
 }
 
 bool	Response::isReady() const { return (_ready); }
@@ -112,6 +113,10 @@ void    Response::_buildResponse()
 		_data += "Connection: close\r\n";
 
 	_data += "\r\n";
+
+	// HEAD Method 的body是空的
+	if (_head)
+		_body = "";
 	_data += _body;
 
 	_ready = true;
@@ -140,8 +145,10 @@ bool	Response::_checkMethod(const Request& req, const LocationConfig& location)
 {
 	// 405 比较特殊 需要加Allow header 所以走正常的buildResponse（builderror不能加额外的header）
 	std::string rMethod = req.getMethod();
+    std::cout << "Method: " << rMethod << std::endl;
 	if (location.methods.find(rMethod) == location.methods.end())
 	{
+        std::cout << "Not found\n";
 		std::string allow;
 		for (std::set<std::string>::const_iterator it = location.methods.begin(); it != location.methods.end(); ++it)
 		{
@@ -174,6 +181,12 @@ void	Response::build(const Request& req,
 
 	if (req.getMethod() == "GET")
 		_handleGet(req, server, location);
+    else if (req.getMethod() == "HEAD")
+    {
+        std::cout << "[debug] head" << std::endl;
+        _head = true;
+		_handleGet(req, server, location);
+    }
 	else if (req.getMethod() == "POST")
 		_handlePost(req, server, location);
 	else if (req.getMethod() == "DELETE")

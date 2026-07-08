@@ -55,6 +55,7 @@ class Config
         void            _parseListen(ServerConfig& server,const std::string& value);
         void            _parseLocation(ServerConfig& server);
         void            _vlidateConfig();
+        void            _clientMaxBody(ServerConfig& server);
 
         Config(const Config&);                      // copy & assign functions, declared but not implemented (prevent copying)
         Config& operator=(const Config&);
