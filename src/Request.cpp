@@ -56,7 +56,7 @@ bool	Request::feed(const std::string& data)
 		if (!_parseTrailer())
 			return (false);
 	}
-	
+
 	return (_state == PARSE_COMPLETE || _state == PARSE_ERROR);
 }
 
@@ -143,7 +143,6 @@ bool	Request::_parseRequestLine()
     	return _setError(400);	// Bad request
 
 	_state = PARSE_HEADERS;
-	std::cout << "[debug]" << _method << std::endl;
 	return (true);
 }
 
@@ -298,8 +297,10 @@ bool	Request::_parseTrailer()
 		if (end + 1 - _pos > _maxBodySize)
     		return _setError(413);	// Payload too large
 		else if (end == _pos)
+		{
+			_pos = end + 2;										// 原本放在else if里面，我放出来让pos向下一行移动增量
 			break ;
-		_pos = end + 2;										// 原本放在else if里面，我放出来让pos向下一行移动增量
+		}
 	}
 	_state = PARSE_COMPLETE;
 	return (true);

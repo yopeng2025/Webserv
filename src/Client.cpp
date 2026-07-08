@@ -54,6 +54,7 @@ Accept: text/html
 void	Client::_checkKeepAlive()
 {
 	std::string connection = Utils::toLower(_request.getHeader("Connection"));
+	std::cout << "Keep-alive: " << connection;
 	if (connection == "keep-alive")
 		_keepAlive = true;
 	else if (connection == "close")

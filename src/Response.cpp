@@ -70,6 +70,7 @@ std::string	Response::getData() const { return (_data); }
 void	Response::buildError(int code, const ServerConfig& server)
 {
 	_statusCode = code;
+	_keepAlive = false;
 
 	// 查看自定义错误页
 	std::map<int, std::string>::const_iterator it = server.errorPages.find(code);
@@ -115,9 +116,8 @@ void    Response::_buildResponse()
 	_data += "\r\n";
 
 	// HEAD Method 的body是空的
-	if (_head)
-		_body = "";
-	_data += _body;
+	if (!_head)
+		_data += _body;
 
 	_ready = true;
 }
@@ -145,10 +145,11 @@ bool	Response::_checkMethod(const Request& req, const LocationConfig& location)
 {
 	// 405 比较特殊 需要加Allow header 所以走正常的buildResponse（builderror不能加额外的header）
 	std::string rMethod = req.getMethod();
-    std::cout << "Method: " << rMethod << std::endl;
+	std::cout << "Method: " << rMethod << std::endl;
+	if (rMethod == "HEAD")
+		rMethod = "GET";
 	if (location.methods.find(rMethod) == location.methods.end())
 	{
-        std::cout << "Not found\n";
 		std::string allow;
 		for (std::set<std::string>::const_iterator it = location.methods.begin(); it != location.methods.end(); ++it)
 		{
@@ -156,8 +157,11 @@ bool	Response::_checkMethod(const Request& req, const LocationConfig& location)
 				allow += ", ";
 			allow += *it;
 		}
+		if (location.methods.count("GET"))
+			allow += ", HEAD";
 		_headers["Content-Type"] = "text/html";
 		_headers["Allow"] = allow;
+		_keepAlive = false;
 		_statusCode = 405;
 		_body = Utils::defaultErrorPage(_statusCode);
         _buildResponse();
@@ -183,7 +187,6 @@ void	Response::build(const Request& req,
 		_handleGet(req, server, location);
     else if (req.getMethod() == "HEAD")
     {
-        std::cout << "[debug] head" << std::endl;
         _head = true;
 		_handleGet(req, server, location);
     }
