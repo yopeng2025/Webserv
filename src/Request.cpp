@@ -281,7 +281,7 @@ bool	Request::_parseBody()
 // pedia\r\n
 // 0\r\n
 // Header-After: value\r\n      <- trailer (optional)  也可以没有trailer
-// \r\n
+// \r\n\n
 bool	Request::_parseTrailer()
 {
 	// 跳过所有 trailer 直到空行
@@ -298,9 +298,10 @@ bool	Request::_parseTrailer()
     		return _setError(413);	// Payload too large
 		else if (end == _pos)
 		{
-			_pos = end + 2;										// 原本放在else if里面，我放出来让pos向下一行移动增量
+			_pos = end + 2;						// 原本放在else if里面，我放出来让pos向下一行移动增量
 			break ;
 		}
+		_pos = end + 2;		
 	}
 	_state = PARSE_COMPLETE;
 	return (true);
