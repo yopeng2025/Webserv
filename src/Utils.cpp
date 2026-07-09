@@ -209,15 +209,16 @@ std::string Utils::joinPath(const std::string& a, const std::string& b)
 }
 
 //把整个文件的内容读出来，放进一个 std::string 里返回
-std::string Utils::readFile(const std::string& path)
+bool Utils::readFile(const std::string& path, std::string& body)
 {
 	std::ifstream ifs(path.c_str(), std::ios::binary); // 以二进制模式放入文件流，防止换行符被转换/丢失图片数据
 	// 检查文件是否成功打开
 	if (!ifs.is_open())
-		return ("");
+		return (false);
 	std::ostringstream oss;
 	oss << ifs.rdbuf();
-	return (oss.str());
+	body = oss.str();
+	return (true);
 }
 
 bool Utils::isDirectory(const std::string& path)

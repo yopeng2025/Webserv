@@ -25,7 +25,8 @@ namespace Utils
 	// file system
 	std::string		getDate();
 	std::string     joinPath(const std::string& a, const std::string& b);
-	std::string		readFile(const std::string& path);
+	// std::string		readFile(const std::string& path);
+	bool 			readFile(const std::string& path, std::string& body);
 	bool			isDirectory(const std::string& path);
 	bool			isRegularFile(const std::string& path);
 	bool            pathExists(const std::string& path);
