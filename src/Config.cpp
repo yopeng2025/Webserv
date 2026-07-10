@@ -37,7 +37,9 @@ const LocationConfig* ServerConfig::findLocation(const std::string& uri) const
         {
             // 检查uri后面是“/”而不是乱七八糟的也匹配上了
             if (locationPath == "/" || uri.size() == locationPath.size()
-                || uri.size() + 1 == locationPath.size() || (uri.size() > locationPath.size() && uri[locationPath.size()] == '/'))
+                || uri.size() + 1 == locationPath.size()
+                || (locationPath[locationPath.size() - 1] == '/')
+                || (uri.size() > locationPath.size() && uri[locationPath.size()] == '/'))
             {
                 if (locationPath.length() > bestMatchLength) 
                 {

@@ -150,7 +150,7 @@ bool	Response::_checkMethod(const Request& req, const LocationConfig& location)
 {
 	// 405 比较特殊 需要加Allow header 所以走正常的buildResponse（builderror不能加额外的header）
 	std::string rMethod = req.getMethod();
-	std::cout << "Method: " << rMethod << std::endl;
+
 	if (location.methods.find(rMethod) == location.methods.end())
 	{
 		std::string allow;
@@ -207,8 +207,6 @@ void Response::_handleGet(const Request& request, const ServerConfig& server, co
     // path = "./www"
     std::string path = Router::resolvePath(request.getPath(), location);
     
-	std::cout << "path: " << path << std::endl;
-	std::cout << "location: " << location.index << std::endl;
     // 是目录 /www
     if (Utils::isDirectory(path))
     {

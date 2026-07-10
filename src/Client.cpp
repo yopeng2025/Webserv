@@ -188,11 +188,11 @@ void Client::process(const Config& config)
   }
 
   std::string resolvePath = Router::resolvePath(_request.getPath(), *location); // 根据location config的root和index以及请求的URI，解析出要访问的文件路径
-// [DEBUG]
-// Request URI: /
-// Resolved path: www
-	std::cout << "Request URI: " << _request.getPath() << std::endl; 
-	std::cout << "Resolved path: " << resolvePath << std::endl;
+	// [DEBUG]
+	// Request URI: /
+	// Resolved path: www
+	// std::cout << "Request URI: " << _request.getPath() << std::endl; 
+	// std::cout << "Resolved path: " << resolvePath << std::endl;
 
 
   if (Router::isCGI(*location, resolvePath))
@@ -213,7 +213,7 @@ void Client::process(const Config& config)
   }
   _response.setKeepAlive(_keepAlive);
   _response.build(_request, *server, *location);
-  //[DEBUG]
+  // [DEBUG]
   std::cout << _response.getData();
   _state = STATE_SENDING;
 }
