@@ -76,9 +76,14 @@ void	Response::buildError(int code, const ServerConfig& server)
 	std::map<int, std::string>::const_iterator it = server.errorPages.find(code);
 	if (it != server.errorPages.end())
 	{
-		_body = Utils::readFile(it->second);
-		if (_body.empty())
+		std::string body;
+		if (!Utils::readFile(it->second, body))
 			_body = Utils::defaultErrorPage(_statusCode);
+		else
+			_body = body;
+		// _body = Utils::readFile(it->second);
+		// if (_body.empty())
+		// 	_body = Utils::defaultErrorPage(_statusCode);
 	}
 	else
 		_body = Utils::defaultErrorPage(_statusCode);
@@ -145,10 +150,6 @@ bool	Response::_checkMethod(const Request& req, const LocationConfig& location)
 {
 	// 405 比较特殊 需要加Allow header 所以走正常的buildResponse（builderror不能加额外的header）
 	std::string rMethod = req.getMethod();
-	std::cout << "Method: " << rMethod << std::endl;
-    // [debug]
-    // if (rMethod == "HEAD")
-	// 	rMethod = "GET";
 	if (location.methods.find(rMethod) == location.methods.end())
 	{
 		std::string allow;
@@ -158,8 +159,6 @@ bool	Response::_checkMethod(const Request& req, const LocationConfig& location)
 				allow += ", ";
 			allow += *it;
 		}
-		if (location.methods.count("GET"))
-			allow += ", HEAD";
 		_headers["Content-Type"] = "text/html";
 		_headers["Allow"] = allow;
 		_keepAlive = false;
@@ -232,7 +231,11 @@ void Response::_handleGet(const Request& request, const ServerConfig& server, co
         }
 
         // index.html不存在，也没有开启autoindex / 权限不足禁止访问
+<<<<<<< HEAD
         return  buildError(404, server);                        // ❓原本是403 forbidden， 但是如果是目录不存在，返回404 not found更合理
+=======
+        return  buildError(404, server);  // 403 forbidden
+>>>>>>> debug-location
     }
 
     // 是文件 /www/index.html
@@ -403,13 +406,23 @@ void Response::_serveFile(const std::string&path, const ServerConfig& server)
     // 检查文件权限
     // R_OK: read permission
     // access success 0 failure -1
-    if (access(path.c_str(), R_OK) != 0)
-        return buildError(403, server); // 403 forbidden
+	if (access(path.c_str(), R_OK) != 0)
+    	return buildError(403, server); // 403 forbidden
 
+<<<<<<< HEAD
     _body = Utils::readFile(path);
     //[debug]
     // if (_body.empty())
     //     return buildError(500,server);
+=======
+	std::string body;
+	if (!Utils::readFile(path, body))
+        return buildError(500,server);
+	_body = body;
+    // _body = Utils::readFile(path);
+    // if (_body.empty())
+        // return buildError(500,server);
+>>>>>>> debug-location
     _headers["Content-Type"] = Utils::getMimeType(path);  
 	_statusCode = 200;           
     _buildResponse();

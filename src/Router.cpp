@@ -7,8 +7,12 @@
 std::string Router::resolvePath(const std::string& uri, const LocationConfig& location)
 {
     std::string relativePath = uri;
-    if (Utils::startsWith(relativePath, location.path))
-        relativePath = relativePath.substr(location.path.length()); // images/logo.png -> /logo.png
+    std::string locPath = location.path;
+    // 如果location是以/结尾 就把这个/去掉 要不然uri里重复的location删不掉
+    if (!locPath.empty() && locPath[locPath.size() - 1] == '/')
+        locPath = locPath.substr(0, locPath.size() - 1);
+    if (Utils::startsWith(relativePath, locPath))
+        relativePath = relativePath.substr(locPath.length()); // images/logo.png -> /logo.png
     
     while (!relativePath.empty() && relativePath[0] == '/')
         relativePath = relativePath.substr(1);                     // /logo.png -> logo.png 去除/     

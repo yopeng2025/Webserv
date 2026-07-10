@@ -33,10 +33,13 @@ const LocationConfig* ServerConfig::findLocation(const std::string& uri) const
         // e.g. locationPath = "/" or "/images" or "/images/logo"
         // find the longest matching prefix to determine the best match
         // e.g. locationPath = "/images/logo" is a better match than locationPath = "/images"
-        if (Utils::startsWith(uri, locationPath))  
+        if (Utils::startsWith(uri, locationPath) || Utils::startsWith(uri + "/", locationPath))  
         {
             // 检查uri后面是“/”而不是乱七八糟的也匹配上了
-            if (locationPath == "/" || uri.size() == locationPath.size() || uri[locationPath.size()] == '/')
+            if (locationPath == "/" || uri.size() == locationPath.size()
+                || uri.size() + 1 == locationPath.size()
+                || (locationPath[locationPath.size() - 1] == '/')
+                || (uri.size() > locationPath.size() && uri[locationPath.size()] == '/'))
             {
                 if (locationPath.length() > bestMatchLength) 
                 {
@@ -291,6 +294,7 @@ void Config::_parseLocation(ServerConfig& server)
     if (path[0] && path[0] != '/')
         throw std::runtime_error("Unvalid location path: " + path);
     location.path = path;
+    std::cout << "location.path: " << location.path << std::endl;
     _expectToken("{");
 
     while (true)
