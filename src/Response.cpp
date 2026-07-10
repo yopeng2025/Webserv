@@ -231,11 +231,7 @@ void Response::_handleGet(const Request& request, const ServerConfig& server, co
         }
 
         // index.html不存在，也没有开启autoindex / 权限不足禁止访问
-<<<<<<< HEAD
         return  buildError(404, server);                        // ❓原本是403 forbidden， 但是如果是目录不存在，返回404 not found更合理
-=======
-        return  buildError(404, server);  // 403 forbidden
->>>>>>> debug-location
     }
 
     // 是文件 /www/index.html
@@ -409,12 +405,6 @@ void Response::_serveFile(const std::string&path, const ServerConfig& server)
 	if (access(path.c_str(), R_OK) != 0)
     	return buildError(403, server); // 403 forbidden
 
-<<<<<<< HEAD
-    _body = Utils::readFile(path);
-    //[debug]
-    // if (_body.empty())
-    //     return buildError(500,server);
-=======
 	std::string body;
 	if (!Utils::readFile(path, body))
         return buildError(500,server);
@@ -422,7 +412,6 @@ void Response::_serveFile(const std::string&path, const ServerConfig& server)
     // _body = Utils::readFile(path);
     // if (_body.empty())
         // return buildError(500,server);
->>>>>>> debug-location
     _headers["Content-Type"] = Utils::getMimeType(path);  
 	_statusCode = 200;           
     _buildResponse();
