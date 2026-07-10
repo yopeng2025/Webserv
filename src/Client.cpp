@@ -94,8 +94,8 @@ bool Client::readData()
 		{
 			_checkKeepAlive();
 			_state = STATE_PROCESSING;
-			// [DEBUG]
-			std::cout << "Request complete\n";
+			// [DEBUG request]
+			std::cout << "[Request complete]\n";
 			std::cout << _request.getRaw();
 		}
 	}
@@ -133,6 +133,7 @@ bool Client::sendData()
 	// 全部数据发送完成 根据keep-alive flag决定是否关闭客户
 	if (_sendOffset >= data.size())
 	{
+		_keepAlive = _response.getKeepAlive();
 		if (_keepAlive)
 		{
 			_request.reset();
@@ -143,9 +144,12 @@ bool Client::sendData()
 		else
 			_state = STATE_DONE; 
 	}
-	// [DEBUG]
-	// std::cout << "Data sent\n";
-	// std::cout << data << std::endl;
+	// [DEBUG send]
+	std::cout << "[Data sent]\n";
+	std::cout << data << std::endl;
+	// std::cout << "_state: " << _state << std::endl;
+	// std::cout << "_keepAlive: " << _keepAlive << std::endl;
+
 	return true;
 }
 
@@ -188,7 +192,7 @@ void Client::process(const Config& config)
   }
 
   std::string resolvePath = Router::resolvePath(_request.getPath(), *location); // 根据location config的root和index以及请求的URI，解析出要访问的文件路径
-	// [DEBUG]
+	// [DEBUG path]
 	// Request URI: /
 	// Resolved path: www
 	// std::cout << "Request URI: " << _request.getPath() << std::endl; 
@@ -213,8 +217,8 @@ void Client::process(const Config& config)
   }
   _response.setKeepAlive(_keepAlive);
   _response.build(_request, *server, *location);
-  // [DEBUG]
-  std::cout << _response.getData();
+  // [DEBUG process]
+//   std::cout << _response.getData();
   _state = STATE_SENDING;
 }
 

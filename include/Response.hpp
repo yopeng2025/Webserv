@@ -20,6 +20,7 @@ class Response
 		void	buildError(int code, const ServerConfig& server);
 		void    setCGIResponse(const std::string& cgiOutput, const ServerConfig& server);
 		void	setKeepAlive(bool keepAlive);
+		bool	getKeepAlive () const;
 		
 	private:
 		bool								_ready;

@@ -65,6 +65,8 @@ bool	Response::isReady() const { return (_ready); }
 
 void	Response::setKeepAlive(bool keepAlive)	{ _keepAlive = keepAlive; }
 
+bool	Response::getKeepAlive() const { return (_keepAlive); }
+
 std::string	Response::getData() const { return (_data); }
 
 void	Response::buildError(int code, const ServerConfig& server)
@@ -205,7 +207,6 @@ void Response::_handleGet(const Request& request, const ServerConfig& server, co
     // GET /www
     // path = "./www"
     std::string path = Router::resolvePath(request.getPath(), location);
-    std::cout << "[debug handleGet] Resolved path: " << path << std::endl;
     
     // 是目录 /www
     if (Utils::isDirectory(path))
