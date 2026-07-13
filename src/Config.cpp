@@ -174,6 +174,7 @@ void	Config::_clientMaxBody(ServerConfig& server)
 		throw std::runtime_error("Invalide size_t value: " + size);
 	if (sizeNum > std::numeric_limits<size_t>::max() / multiplier)
 		throw std::runtime_error("client_max_body_size value is too large: " + size);
+    std::cout << "clientMaxBody: " << sizeNum * multiplier << std::endl;;
 	server.clientMaxBody = sizeNum * multiplier;
 	_expectToken(";");
 }
@@ -209,7 +210,10 @@ void Config::_parseServer()
             }
         }
         else if (token == "client_max_body_size")
+        {
+            std::cout << "进来了\n";
             _clientMaxBody(server);
+        }
         else if (token == "error_page")
         {
             std::string codeStr = _nextToken();

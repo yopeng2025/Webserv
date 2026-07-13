@@ -514,7 +514,11 @@ void	Server::_removeDoneClient()
 	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
 		if (it->second->getState() == Client::STATE_DONE)
+		{
+			// [DEBUG remove client]
+			// std::cout << "removing client fd: " << it->first << std::endl;
 			toRemove.push_back(it->first);
+		}
 	}
 	for (size_t i = 0; i < toRemove.size(); ++i)
 		_removeClient(toRemove[i]);

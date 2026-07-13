@@ -325,14 +325,18 @@ bool	Request::_parseChunked()
 		// 1. 寻找换行符，如果没有找到就继续读；如果字符超出最大值，返回错误代码
 		size_t end = _raw.find("\r\n", _pos);
 		if (end == std::string::npos)
+		{
 			// 没读到一整行 下次再读
+			if (_raw.size() - _pos > _maxBodySize)
+				return _setError(413);	// Payload too large
 			return (false);
+		}
 
 		// 2. 拷贝chunckSize
 		std::string chunkSize = _raw.substr(_pos, end - _pos);
 		size_t size;
 		if (!Utils::toSizeTHex(chunkSize, size)) // ❗新function
-    		return _setError(400);	// Bad request
+			return _setError(405);	// Bad request
 
 		// 3. 0为结束 最后一个chunck
 		if (size == 0)
@@ -342,13 +346,20 @@ bool	Request::_parseChunked()
 			return (true);
 		}
 
-		// 4. 检查chuck内容部分是否足够
-		if (_raw.size() < end + 2 + size + 2)
-			return (false);
 		// 5. 追加前检查body大小限制
 		if (_body.size() + size > _maxBodySize)
-    		return _setError(413);	// Payload too large
-		
+		{
+			std::cout << "触发413\n";
+			return _setError(413);	// Payload too large
+		}
+
+		// 4. 检查chuck内容部分是否足够
+		if (_raw.size() < end + 2 + size + 2)
+		{
+			// std::cout << "这里返回了\n";
+			return (false);
+		}
+	
 		// 6. 追加body 移动_pos
 		_body += _raw.substr(end + 2, size);;
 		_pos = end + 2 + size + 2; 
