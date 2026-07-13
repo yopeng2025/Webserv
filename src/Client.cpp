@@ -198,7 +198,7 @@ void Client::process(const Config& config)
   if (Router::isCGI(*location, resolvePath))
   {
     _cgi = new CGI();
-    if (!_cgi->execute(_request, *location, *server, resolvePath))
+    if (!_cgi->execute(_request, *location, *server, resolvePath))  // (request, /directory, /YoupiBanane/youpi.bla)
     {
       delete _cgi;
       _cgi = NULL;

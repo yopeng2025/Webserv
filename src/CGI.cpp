@@ -112,7 +112,22 @@ bool CGI::execute(const Request& request, const LocationConfig& location,
 		// Execute CGI
 		if (location.cgiPath.empty())
 			_exit(1);							// exit child process & return 1 to parent process
+
+
+
+		// 新添加！
+		// 执行cgi的绝对路径 ./cgi_tester -> /home/login/webserv/cgi_tester
 		std::string cgiPath = location.cgiPath;
+		if (!cgiPath.empty() && cgiPath[0] == '.')
+			cgiPath = cgiPath.substr(1);	// remove leading '.' to make it relative
+		if (!cgiPath.empty() && cgiPath[0] != '/')
+		    cgiPath = cgiPath.substr(1);    // remove leading '/' to make it relative
+		char cwd[4096];
+		if (getcwd(cwd, sizeof(cwd)) != 0)
+			cgiPath = std::string(cwd) + "/" + cgiPath;
+
+
+			
 		char *argv[3];
 		argv[0] = const_cast<char*>(cgiPath.c_str());
 		argv[1] = const_cast<char*>(absoluteScriptPath.c_str());
