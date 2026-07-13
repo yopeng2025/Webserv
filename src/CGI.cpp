@@ -115,19 +115,20 @@ bool CGI::execute(const Request& request, const LocationConfig& location,
 
 
 
-		// 新添加！
-		// 执行cgi的绝对路径 ./cgi_tester -> /home/login/webserv/cgi_tester
+		// // 新添加！
+		// // 执行cgi的绝对路径 ./cgi_tester -> /home/login/webserv/cgi_tester
+		// std::string cgiPath = location.cgiPath;
+		// if (!cgiPath.empty() && cgiPath[0] == '.')
+		// 	cgiPath = cgiPath.substr(1);	// remove leading '.' to make it relative
+		// if (!cgiPath.empty() && cgiPath[0] == '/')
+		//     cgiPath = cgiPath.substr(1);    // remove leading '/' to make it relative
+		// char cwd[4096];
+		// if (getcwd(cwd, sizeof(cwd)) != 0)
+		// 	cgiPath = std::string(cwd) + "/" + cgiPath;
+
 		std::string cgiPath = location.cgiPath;
-		if (!cgiPath.empty() && cgiPath[0] == '.')
-			cgiPath = cgiPath.substr(1);	// remove leading '.' to make it relative
-		if (!cgiPath.empty() && cgiPath[0] != '/')
-		    cgiPath = cgiPath.substr(1);    // remove leading '/' to make it relative
-		char cwd[4096];
-		if (getcwd(cwd, sizeof(cwd)) != 0)
-			cgiPath = std::string(cwd) + "/" + cgiPath;
+		std::cerr << "cgiPath: " << cgiPath << std::endl;
 
-
-			
 		char *argv[3];
 		argv[0] = const_cast<char*>(cgiPath.c_str());
 		argv[1] = const_cast<char*>(absoluteScriptPath.c_str());
@@ -176,7 +177,7 @@ std::vector<std::string> CGI::_buildEnvironment(const Request& request,
 	if (contentLength.empty())
 		contentLength = "0";
 	env.push_back("CONTENT_LENGTH=" + contentLength);
-	env.push_back("SCRIPT_NAME=" + request.getPath());
+	// env.push_back("SCRIPT_NAME=" + request.getPath());
 	env.push_back("SCRIPT_FILENAME=" + absoluteScriptPath);
 	env.push_back("PATH_INFO=" + request.getPath());
 	env.push_back("PATH_TRANSLATED=" + absoluteScriptPath);
@@ -203,6 +204,9 @@ std::vector<std::string> CGI::_buildEnvironment(const Request& request,
 		}
 		env.push_back(envName + "=" + it->second);
 	}
+	// [DEBUG env]
+	// for (size_t i = 0; i < env.size(); i++)
+	// 	std::cerr << env[i] << std::endl;
 	return env;
 }
 
