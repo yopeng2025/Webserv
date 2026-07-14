@@ -119,6 +119,7 @@ bool	Request::_parseRequestLine()
     	return _setError(400);	// Bad request
 
 	_uri = line.substr(sp1 + 1, sp2 - sp1 - 1);
+	// std::cout << "[debug parseRequestLine] _uri: " << _uri << std::endl;
 
 	// 4. 剩余填进version
 	_version = line.substr(sp2 + 1);
