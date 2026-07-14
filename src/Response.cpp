@@ -56,7 +56,7 @@ void	Response::reset()
 	_data.clear();
 	_headers.clear();
 	_body.clear();
-	_statusCode = 0;;
+	_statusCode = 0;
 	_keepAlive = false;
     _head = false;
 }
@@ -68,6 +68,8 @@ void	Response::setKeepAlive(bool keepAlive)	{ _keepAlive = keepAlive; }
 bool	Response::getKeepAlive() const { return (_keepAlive); }
 
 std::string	Response::getData() const { return (_data); }
+int Response::getCode() const { return (_statusCode); }
+
 
 void	Response::buildError(int code, const ServerConfig& server)
 {
@@ -255,7 +257,10 @@ void Response::_handlePost(const Request& request, const ServerConfig& server, c
         return ;
     }
     else
+    {
+        std::cout << "Handle get\n";
         _handleGet(request, server, location);
+    }
 }
 
 /*

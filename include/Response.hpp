@@ -16,6 +16,7 @@ class Response
 		void	reset();
 		bool	isReady() const;
 		std::string	getData() const;
+		int		getCode() const;
 		void	build(const Request& req, const ServerConfig& server, const LocationConfig&);
 		void	buildError(int code, const ServerConfig& server);
 		void    setCGIResponse(const std::string& cgiOutput, const ServerConfig& server);

@@ -15,6 +15,8 @@ struct LocationConfig
     std::string                 uploadPath;     // "/upload"
     std::string                 cgiExtension;   // ".py"
     std::string                 cgiPath;        // "usr/bin/python3" 
+    size_t                      clientMaxBody;  // in bytes
+
 
     LocationConfig();
 };
@@ -55,7 +57,7 @@ class Config
         void            _parseListen(ServerConfig& server,const std::string& value);
         void            _parseLocation(ServerConfig& server);
         void            _vlidateConfig();
-        void            _clientMaxBody(ServerConfig& server);
+        void            _clientMaxBody(size_t& clientMaxBody);
 
         Config(const Config&);                      // copy & assign functions, declared but not implemented (prevent copying)
         Config& operator=(const Config&);
