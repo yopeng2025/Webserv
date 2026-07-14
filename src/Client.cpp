@@ -148,7 +148,7 @@ bool Client::sendData()
 			_state = STATE_DONE; 
 	}
 	// [DEBUG send]
-	std::cout << "[Data sent]>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n";
+	std::cout << "[Data sent]>>>>>>>>>>>>>>>>>>>>>>>>>>>\n";
 	// std::cout << data << std::endl;
 	// size_t statusCode_postion = data.find("\r\n"); 
 	// std::cout << data.substr(0, statusCode_postion) << std::endl;   // 只打印响应的状态行
