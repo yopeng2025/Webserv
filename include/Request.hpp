@@ -2,6 +2,7 @@
 # define REQUEST_HPP
 
 #include "Webserv.hpp"
+#include "Config.hpp"
 
 struct ListenSocket;
 
@@ -53,6 +54,7 @@ class Request
 		int									_errorCode;
 		size_t								_maxBodySize;
 		State								_state;
+		const ServerConfig*					_config;
 
 	
 		bool	_parseRequestLine();

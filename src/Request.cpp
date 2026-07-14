@@ -6,7 +6,8 @@ Request::Request(ListenSocket* ls):
 	  _contentLength(0),
 	  _errorCode(0),
 	  _maxBodySize(ls->Config->clientMaxBody),
-	  _state(PARSE_REQUEST_LINE) {}
+	  _state(PARSE_REQUEST_LINE),
+	  _config(ls->Config) {}
 
 Request::~Request() {}
 
@@ -28,7 +29,6 @@ void	Request::reset()
 
 bool	Request::feed(const std::string& data)
 {
-	// 没读完返回false 读完了或者有错误返回true
 	_raw += data;
 
 	if (_state == PARSE_REQUEST_LINE)
@@ -159,6 +159,11 @@ void	Request::_getBodyType()
 	// pedia\r\n
 	// 0\r\n
 	// \r\n
+
+	const LocationConfig* location = _config->findLocation(_path);
+	if (location)
+		_maxBodySize = location->clientMaxBody;
+
 	std::string te = Utils::toLower(getHeader("Transfer-Encoding")); //返回 值chunked
 	if (te.size() >= 7 && te.substr(te.size() - 7) == "chunked")
 		_state = PARSE_CHUNKED;
@@ -249,6 +254,8 @@ bool	Request::_parseHeaders()
 // user=abc&password=123   <- body
 bool	Request::_parseBody()
 {
+	std::cerr << "_maxBodySize: " << _maxBodySize << std::endl;
+	std::cerr << "_contentLength: " << _contentLength << std::endl;
 	size_t size = _raw.size() - _pos;
 	// 如果size大于最大body 返回错误代码
 	if (size > _maxBodySize)

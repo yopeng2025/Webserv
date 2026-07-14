@@ -296,9 +296,14 @@ void	Server::_acceptConnection(int listenFd)
 
 	// ❗找到对应server（结构有修改）
 	std::map<int, ListenSocket*>::iterator it = _listenSocket.find(listenFd);
-	ListenSocket* ls;
+	ListenSocket* ls = NULL;
 	if (it != _listenSocket.end())
 		ls = it->second;
+	if (ls == NULL)
+	{
+		close(clientFd);
+		return ;
+	}
 	
 	Client* client = new Client(clientFd, ls);
 	_clients[clientFd] = client;

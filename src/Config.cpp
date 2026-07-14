@@ -146,7 +146,7 @@ void Config::_expectToken(const std::string& expected)  // 返回值改为void, 
         throw std::runtime_error("Expected '" + expected + "', but got '" + token + "'");
 }
 
-void	Config::_clientMaxBody(ServerConfig& server)
+void	Config::_clientMaxBody(size_t& clientMaxBody)
 {
 	std::string size = _nextToken();
 	size_t      multiplier = 1;
@@ -174,8 +174,7 @@ void	Config::_clientMaxBody(ServerConfig& server)
 		throw std::runtime_error("Invalide size_t value: " + size);
 	if (sizeNum > std::numeric_limits<size_t>::max() / multiplier)
 		throw std::runtime_error("client_max_body_size value is too large: " + size);
-    std::cout << "clientMaxBody: " << sizeNum * multiplier << std::endl;;
-	server.clientMaxBody = sizeNum * multiplier;
+	clientMaxBody = sizeNum * multiplier;
 	_expectToken(";");
 }
 
@@ -210,10 +209,7 @@ void Config::_parseServer()
             }
         }
         else if (token == "client_max_body_size")
-        {
-            std::cout << "进来了\n";
-            _clientMaxBody(server);
-        }
+            _clientMaxBody(server.clientMaxBody);
         else if (token == "error_page")
         {
             std::string codeStr = _nextToken();
@@ -294,11 +290,11 @@ void Config::_skipWhitespace()
 void Config::_parseLocation(ServerConfig& server)
 {
     LocationConfig location;
+    location.clientMaxBody = server.clientMaxBody;
     std::string path = _nextToken();
     if (path[0] && path[0] != '/')
         throw std::runtime_error("Unvalid location path: " + path);
     location.path = path;
-    std::cout << "location.path: " << location.path << std::endl;
     _expectToken("{");
 
     while (true)
@@ -358,7 +354,7 @@ void Config::_parseLocation(ServerConfig& server)
             _expectToken(";");
         }
         else if (token == "client_max_body_size")
-            _clientMaxBody(server);
+            _clientMaxBody(location.clientMaxBody);
         else
             throw std::runtime_error("Unknown directive in location block: '" + token + "'");
     }
