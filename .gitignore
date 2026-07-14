@@ -3,3 +3,4 @@ cgi_tester
 *.o
 webserv
 obj/*
+uploadTest/*
