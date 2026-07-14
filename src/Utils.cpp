@@ -351,3 +351,13 @@ std::string     Utils::trimSpace(const std::string& str)
 	std::string trimmed = str.substr(start, end - start + 1);
 	return trimmed;
 }
+
+std::string Utils::addAbsolutePath(const std::string& path)
+{
+	std::string absolutePath = path;
+	char cwd[4096];
+	if (getcwd(cwd, sizeof(cwd)) != 0)
+		absolutePath = std::string(cwd) + "/" + path;
+		
+	return absolutePath;
+}

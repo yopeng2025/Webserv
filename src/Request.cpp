@@ -185,6 +185,7 @@ void	Request::_getBodyType()
 			_errorCode = 400;	// Bad request
 			return ;
 		}
+		std::cout << "[debug getBody] Content-Length: " << _contentLength << std::endl;
 		_contentLength = contentLength;
 		if (_contentLength == 0)
 			_state = PARSE_COMPLETE;
@@ -349,7 +350,7 @@ bool	Request::_parseChunked()
 		// 5. 追加前检查body大小限制
 		if (_body.size() + size > _maxBodySize)
 		{
-			std::cout << "触发413\n";
+			// std::cout << "触发413\n";
 			return _setError(413);	// Payload too large
 		}
 

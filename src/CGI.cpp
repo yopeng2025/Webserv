@@ -36,11 +36,15 @@ bool CGI::execute(const Request& request, const LocationConfig& location,
 	// /home/login/webserv + / +  cgi-bin/script.py -> /home/login/webserv/cgi-bin/script.py
 	std::string absoluteScriptPath = scriptPath;
 	if (!scriptPath.empty() && scriptPath[0] != '/')
-	{
-		char cwd[4096];
-		if (getcwd(cwd, sizeof(cwd)) != 0)
-		    absoluteScriptPath = std::string(cwd) + "/" + scriptPath;
-	}
+		absoluteScriptPath = Utils::addAbsolutePath(scriptPath);
+							
+	std::string cgiPath = location.cgiPath;
+	if (cgiPath.empty())
+		_exit(1);	
+	// 绝对路径 ./cgi_tester -> /home/login/webserv/cgi_tester
+	if (!cgiPath.empty() && cgiPath[0] != '/')
+		cgiPath = Utils::addAbsolutePath(cgiPath);
+	// std::cerr << "[debug cgiPath] (应该输出绝对路径) " << cgiPath << std::endl;
 
 	// Unix pipe() 单向通信机制，父进程和子进程之间通过管道进行数据传输
 	// pipefd[1] 管道的写端 | pipefd[0] 管道的读端
@@ -109,26 +113,7 @@ bool CGI::execute(const Request& request, const LocationConfig& location,
 			chdir(scriptDir.c_str());
 		}
 
-		// Execute CGI
-		if (location.cgiPath.empty())
-			_exit(1);							// exit child process & return 1 to parent process
-
-
-
-		// // 新添加！
-		// // 执行cgi的绝对路径 ./cgi_tester -> /home/login/webserv/cgi_tester
-		// std::string cgiPath = location.cgiPath;
-		// if (!cgiPath.empty() && cgiPath[0] == '.')
-		// 	cgiPath = cgiPath.substr(1);	// remove leading '.' to make it relative
-		// if (!cgiPath.empty() && cgiPath[0] == '/')
-		//     cgiPath = cgiPath.substr(1);    // remove leading '/' to make it relative
-		// char cwd[4096];
-		// if (getcwd(cwd, sizeof(cwd)) != 0)
-		// 	cgiPath = std::string(cwd) + "/" + cgiPath;
-
-		std::string cgiPath = location.cgiPath;
-		std::cerr << "cgiPath: " << cgiPath << std::endl;
-
+		// Execute CGI script
 		char *argv[3];
 		argv[0] = const_cast<char*>(cgiPath.c_str());
 		argv[1] = const_cast<char*>(absoluteScriptPath.c_str());

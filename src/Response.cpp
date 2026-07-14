@@ -272,8 +272,8 @@ void Response::_handleUpload(const Request& request, const ServerConfig& server,
 {
     std::string contentType = request.getHeader("Content-Type");
     const std::string& body = request.getBody();
-    if (body.empty())
-        return buildError(400, server);
+    // if (body.empty())
+    //     return buildError(400, server);
 
     std::string uploadPath = location.uploadPath;
     if (!Utils::isDirectory(uploadPath))
