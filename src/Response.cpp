@@ -257,10 +257,7 @@ void Response::_handlePost(const Request& request, const ServerConfig& server, c
         return ;
     }
     else
-    {
-        std::cout << "Handle get\n";
         _handleGet(request, server, location);
-    }
 }
 
 /*

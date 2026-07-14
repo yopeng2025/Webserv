@@ -119,7 +119,6 @@ bool	Request::_parseRequestLine()
     	return _setError(400);	// Bad request
 
 	_uri = line.substr(sp1 + 1, sp2 - sp1 - 1);
-	// std::cout << "[debug parseRequestLine] _uri: " << _uri << std::endl;
 
 	// 4. 剩余填进version
 	_version = line.substr(sp2 + 1);
@@ -135,10 +134,7 @@ bool	Request::_parseRequestLine()
     	return _setError(505);	//  HTTP Version Not Supported
 
 	if (_uri.size() > MAX_URI_LENTH)
-	{
-		std::cout << "URI: " << _uri << std::endl;
     	return _setError(414);	// URI Too Long
-	}
 
 	if(!_parseUri())
     	return _setError(400);	// Bad request
@@ -191,7 +187,6 @@ void	Request::_getBodyType()
 			_errorCode = 400;	// Bad request
 			return ;
 		}
-		std::cout << "[debug getBody] Content-Length: " << _contentLength << std::endl;
 		_contentLength = contentLength;
 		if (_contentLength == 0)
 			_state = PARSE_COMPLETE;
@@ -256,8 +251,6 @@ bool	Request::_parseHeaders()
 // user=abc&password=123   <- body
 bool	Request::_parseBody()
 {
-	std::cerr << "_maxBodySize: " << _maxBodySize << std::endl;
-	std::cerr << "_contentLength: " << _contentLength << std::endl;
 	size_t size = _raw.size() - _pos;
 	// 如果size大于最大body 返回错误代码
 	if (size > _maxBodySize)
@@ -357,17 +350,11 @@ bool	Request::_parseChunked()
 
 		// 5. 追加前检查body大小限制
 		if (_body.size() + size > _maxBodySize)
-		{
-			// std::cout << "触发413\n";
 			return _setError(413);	// Payload too large
-		}
 
 		// 4. 检查chuck内容部分是否足够
 		if (_raw.size() < end + 2 + size + 2)
-		{
-			// std::cout << "这里返回了\n";
 			return (false);
-		}
 	
 		// 6. 追加body 移动_pos
 		_body += _raw.substr(end + 2, size);;

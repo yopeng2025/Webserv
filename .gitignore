@@ -4,3 +4,4 @@ cgi_tester
 webserv
 obj/*
 www/upload/*
+.vscode/*

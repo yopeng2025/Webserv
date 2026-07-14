@@ -44,7 +44,6 @@ bool CGI::execute(const Request& request, const LocationConfig& location,
 	// 绝对路径 ./cgi_tester -> /home/login/webserv/cgi_tester
 	if (!cgiPath.empty() && cgiPath[0] != '/')
 		cgiPath = Utils::addAbsolutePath(cgiPath);
-	// std::cerr << "[debug cgiPath] (应该输出绝对路径) " << cgiPath << std::endl;
 
 	// Unix pipe() 单向通信机制，父进程和子进程之间通过管道进行数据传输
 	// pipefd[1] 管道的写端 | pipefd[0] 管道的读端
@@ -189,9 +188,6 @@ std::vector<std::string> CGI::_buildEnvironment(const Request& request,
 		}
 		env.push_back(envName + "=" + it->second);
 	}
-	// [DEBUG env]
-	// for (size_t i = 0; i < env.size(); i++)
-	// 	std::cerr << env[i] << std::endl;
 	return env;
 }
 
