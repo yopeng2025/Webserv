@@ -317,9 +317,8 @@ void Server::_handleCGIRead(int fd) {
 		CGI* cgi = it->second->getCGI();
 		if (cgi && cgi->getOutputFd() == fd) {
 			bool done = cgi->readOutput();
-			if (done) {
+			if (done)
 				_removePollFd(fd);
-			}
 			return;
 		}
 	}
@@ -416,18 +415,23 @@ void	Server::_handlePollEvent()
 			CGI* cgi = it->second->getCGI();
 			if (cgi)
 			{
+				// std::cerr << "Fd: " << fd << std::endl;
+				// std::cerr << "OutputFd: " << cgi->getOutputFd() << std::endl;
 				if (fd == cgi->getOutputFd())
 				{
 					// 不管是读还是挂断 都去读完然后看是否finish
 					if (revents & POLLIN || revents & POLLHUP)
 						_handleCGIRead(fd);
+					isCGI = true;
+					break ;
 				}
 				else if (fd == cgi->getInputFd())
 				{
 					if (revents & POLLOUT)
 						_handleCGIWrite(fd);
+					isCGI = true;
+					break ;
 				}
-				isCGI = true;
 			}
 		}
 		if (isCGI)
@@ -483,7 +487,7 @@ void	Server::_checkCGI()
 		if (cgi && c->getState() == Client::STATE_CGI_RUNNING)
 		{
 			cgi->reapChild();
-			if (cgi->isDone())
+			if (cgi->isDone())   			// 还没有timeout
 				c->finalizeCGI();
 			else if (cgi->checkTimeout())
 			{
