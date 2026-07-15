@@ -338,7 +338,7 @@ bool	Request::_parseChunked()
 		std::string chunkSize = _raw.substr(_pos, end - _pos);
 		size_t size;
 		if (!Utils::toSizeTHex(chunkSize, size)) // ❗新function
-			return _setError(405);	// Bad request
+			return _setError(400);	// Bad request
 
 		// 3. 0为结束 最后一个chunck
 		if (size == 0)

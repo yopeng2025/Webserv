@@ -25,6 +25,7 @@ class CGI
 		bool		checkTimeout();
 		bool		readOutput();
 		bool		isBodyWritten() const;
+		bool		getTimeOut() const;
 
 		void    	closeFds();
 		void		reapChild();
@@ -42,6 +43,7 @@ class CGI
 		std::string _bodyToWrite;
 		size_t  	_bodyWriteOffset;
 		std::string _output;
+		bool		_timeOut;
 		
 
 		std::vector<std::string>	_buildEnvironment(const Request& request,

@@ -229,11 +229,23 @@ void Client::process(const Config& config)
 
 void Client::finalizeCGI()
 {
-	if (!_cgi || !_cgi->isDone())
-		return;
-
 	ServerConfig defaultServer;
 	const ServerConfig* server = _matchedServer ? _matchedServer : &defaultServer;
+
+	if (_cgi->getTimeOut())
+	{
+		// [DEBUG CGI Timeout]
+		// std::cerr << "CGI time out\n";
+		_response.buildError(504, *server);
+		delete _cgi;
+		_cgi = NULL;
+		_matchedServer = NULL;
+		_state = STATE_SENDING;
+		return ;
+	}
+
+	if (!_cgi || !_cgi->isDone())
+		return;
 
 	if (_cgi->getOutput().empty())
 		_response.buildError(502, *server);

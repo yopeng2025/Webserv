@@ -2,7 +2,7 @@
 #include "Utils.hpp"
 
 CGI::CGI(): _pid(-1), _inputFd(-1), _outputFd(-1), _startTime(0), _done(false), _bodyWritten(false),
-			_bodyWriteOffset(0) {}
+			_bodyWriteOffset(0), _timeOut(false) {}
 
 CGI::~CGI()
 {
@@ -191,6 +191,8 @@ std::vector<std::string> CGI::_buildEnvironment(const Request& request,
 	return env;
 }
 
+bool	CGI::getTimeOut() const {return (_timeOut);}
+
 int CGI::getInputFd() const {return (_inputFd);}
 
 int CGI::getOutputFd() const {return (_outputFd);}
@@ -210,7 +212,9 @@ bool CGI::checkTimeout()
 	if (_done)
 		return false;
 	time_t currentTime = time(NULL);
-	return (currentTime - _startTime >= CGI_TIMEOUT);
+	if (currentTime - _startTime >= CGI_TIMEOUT)
+		_timeOut = true;
+	return (_timeOut);
 }
 
 void CGI::reapChild()
@@ -266,7 +270,10 @@ bool CGI::readOutput()
 	if (bytesRead < 0)
 	{
 		if (errno == EAGAIN || errno == EWOULDBLOCK)
+		{
+			std::cerr << "readOutput EAGAIN" << std::endl;
 			return false; // No data available now, try again later
+		}
 		else
 		{
 			LOG_ERROR("CGI: Error reading output pipe");
