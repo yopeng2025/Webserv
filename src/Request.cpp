@@ -74,14 +74,16 @@ bool	Request::_parseUri()
 
 	std::string pathPart = (qpos == std::string::npos) ? _uri : _uri.substr(0, qpos);
 	std::string queryPart = (qpos == std::string::npos) ? "" : _uri.substr(qpos + 1);
+	_query = queryPart;
 
 	std::string path;
 	if (!Utils::decodePath(pathPart, path))
 		return (false);
 	std::string query;
-	if (!Utils::decodeQuery(query, queryPart))
+	if (!Utils::decodeQuery(queryPart, query))
 		return (false);
 	_path = Utils::sanitizePath(path);
+	
 	return (true);
 }
 
