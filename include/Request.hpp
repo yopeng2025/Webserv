@@ -55,16 +55,18 @@ class Request
 		size_t								_maxBodySize;
 		State								_state;
 		const ServerConfig*					_config;
+		std::map<std::string, std::string>  _cookies;
 
 	
-		bool	_parseRequestLine();
-		bool	_parseHeaders();
-		bool	_parseBody();
-		bool	_parseChunked();
-		bool	_parseTrailer();
-		bool	_parseUri();
-		void	_getBodyType();
-		bool	_setError(int error_code);
+		bool								_parseRequestLine();
+		bool								_parseHeaders();
+		bool								_parseBody();
+		bool								_parseChunked();
+		bool								_parseTrailer();
+		bool								_parseUri();
+		void								_getBodyType();
+		bool								_setError(int error_code);
+		std::map<std::string, std::string> 	_parseCookies(const std::string& cookieHeader);
 
 };
 

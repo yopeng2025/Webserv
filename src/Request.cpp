@@ -212,7 +212,7 @@ bool	Request::_parseHeaders()
 	while (1)
 	{
 		// 跳过之前读过的内容 查找下一行
-		size_t end = _raw.find("\r\n", _pos);   		// 修改：删去 _pos+1的 +1
+		size_t end = _raw.find("\r\n", _pos);
 		if (end == std::string::npos)
 		{
 			if (_raw.size() > MAX_HEADER_SIZE)
@@ -241,6 +241,10 @@ bool	Request::_parseHeaders()
 
 		std::string key = Utils::toLower(Utils::trim(line.substr(0, colon)));
 		std::string value = Utils::trim(line.substr(colon + 1));
+
+		if (key == "Cookie" || key == "cookie")
+			std::map<std::string, std::string> _cookies = _parseCookies(value);
+
 		_headers[key] = value;
 	}
 }
@@ -373,6 +377,29 @@ std::string	Request::getHeader(const std::string& str) const
 	if (it != _headers.end())
 		return (it->second);
 	return ("");
+}
+
+// Cookie: {username=Bob; session_id=12345; theme=dark}
+std::map<std::string, std::string> Request:: _parseCookies(const std::string& cookieHeader)
+{
+    std::map<std::string, std::string>  cookies;
+    std::istringstream                  cookieStream(cookieHeader);
+    std::string                         cookiePair;
+
+    while (std::getline(cookieStream, cookiePair, ';'))                 // [ ]username=Bob
+    {
+        size_t      start = cookiePair.find_first_not_of(' ');          // ->u
+		if (start == std::string::npos)                                      // 如果cookiePair全是空格，跳过
+			continue;
+        size_t      equalPos = cookiePair.find('=');                    // ->=
+        if (equalPos == std::string::npos)                              // usernameBob -> skip
+            continue;
+        std::string key = cookiePair.substr(start, equalPos - start);   // username
+        std::string value = cookiePair.substr(equalPos + 1);            // Bob
+        cookies[key] = value;
+    }
+    // cookies: { "username": "Bob", "session_id": "12345", "theme": "dark" }
+    return cookies;
 }
 
 const std::map<std::string, std::string>& Request::getHeaders()  const { return _headers; }
