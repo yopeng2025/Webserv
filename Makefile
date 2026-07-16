@@ -1,23 +1,24 @@
 NAME 		= webserv
 
 CXX 		= c++
-CXXFLAGS 		= -Wall -Wextra -Werror -g -std=c++98
+CXXFLAGS 	= -Wall -Wextra -Werror -g -std=c++98 -MMD -MP
 
 SRCDIR	= src
 INCDIR	= include
 OBJDIR	= obj
 
 SRCS 		= $(SRCDIR)/main.cpp \
-			  $(SRCDIR)/Config.cpp \
-			  $(SRCDIR)/Server.cpp \
-			  $(SRCDIR)/Client.cpp \
-			  $(SRCDIR)/Request.cpp \
-			  $(SRCDIR)/Response.cpp \
-			  $(SRCDIR)/CGI.cpp \
-			  $(SRCDIR)/Router.cpp \
-	   		  $(SRCDIR)/Utils.cpp
+			$(SRCDIR)/Config.cpp \
+			$(SRCDIR)/Server.cpp \
+			$(SRCDIR)/Client.cpp \
+			$(SRCDIR)/Request.cpp \
+			$(SRCDIR)/Response.cpp \
+			$(SRCDIR)/CGI.cpp \
+			$(SRCDIR)/Router.cpp \
+			$(SRCDIR)/Utils.cpp
 
 OBJS 		= $(SRCS:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
+DEP = $(OBJS:.o=.d)
 
 all: $(NAME)
 
@@ -39,5 +40,7 @@ fclean: clean
 
 re: fclean 
 	$(MAKE) all
+
+-include $(DEP)
 
 .PHONY: all clean fclean re

@@ -1,0 +1,114 @@
+*This project has been created as part of the 42 curriculum by peiyli, yopeng.*
+
+# webserv
+
+## Description
+
+**webserv** is an HTTP/1.1 web server written from scratch in C++98, inspired by NGINX. The goal of the project is to gain a deep understanding of the HTTP protocol and of non-blocking, event-driven network programming, by building a server capable of handling multiple simultaneous client connections without ever blocking or forking per request.
+
+The server:
+
+- Parses an NGINX-style configuration file (listen ports, server names, routes, error pages, client body size limits, etc.)
+- Handles the **GET**, **POST**, and **DELETE** methods
+- Serves static websites, supports file uploads, and generates directory listings (autoindex)
+- Ships with an interactive test homepage (served by the default configuration) that lets testers try out every supported method directly from the browser
+- Executes **CGI** scripts (e.g., PHP or Python) for dynamic content
+- Uses a single `poll()` (or equivalent) loop to multiplex all I/O — reads, writes, and new connections — making it fully non-blocking
+- Returns accurate HTTP status codes and default error pages, and remains available under stress
+
+### Project structure
+
+```
+webserv/
+├── Makefile
+├── include/        # Header files
+├── src/
+│   ├── main.cpp    # Entry point
+│   ├── Config.cpp  # Configuration file parsing
+│   ├── Server.cpp  # Socket setup and event loop
+│   ├── Client.cpp  # Per-connection state management
+│   ├── Request.cpp # HTTP request parsing
+│   ├── Response.cpp# HTTP response building
+│   ├── Router.cpp  # Route matching and method dispatch
+│   ├── CGI.cpp     # CGI execution
+│   └── Utils.cpp   # Helper functions
+└── conf/           # Example configuration files
+```
+
+## Instructions
+
+### Requirements
+
+- A C++ compiler supporting C++98 (`c++`, `g++`, or `clang++`)
+- `make`
+- Python 3 (for CGI scripts)
+- A Unix-like system (Linux or macOS)
+
+### Compilation
+
+```bash
+git clone <repository_url> webserv
+cd webserv
+make
+```
+
+Available Makefile rules:
+
+| Rule     | Effect                                        |
+|----------|-----------------------------------------------|
+| `make`   | Compile the project and produce `./webserv`   |
+| `make clean`  | Remove object files                      |
+| `make fclean` | Remove object files and the executable   |
+| `make re`     | Full rebuild                             |
+
+The binary is compiled with `-Wall -Wextra -Werror -std=c++98`.
+### Execution
+
+```bash
+# With a configuration file
+./webserv config/default.conf
+
+# Without arguments (uses config/default.conf by default)
+./webserv
+```
+
+
+### Testing
+
+Once the server is running, you can test it with a browser at `http://localhost:8080/` or with `curl`:
+
+```bash
+# GET request
+curl -v http://localhost:8080/
+# POST request
+curl -v -X POST -d "hello" http://localhost:8080/upload
+# DELETE request
+curl -v -X DELETE http://localhost:8080/file.txt
+```
+
+Stress testing can be done with tools such as `siege`:
+
+```bash
+siege -b http://localhost:8080/
+```
+
+## Resources
+
+### Documentation & references
+
+- [RFC 9112 — HTTP/1.1](https://datatracker.ietf.org/doc/html/rfc9112) — the core specification of the HTTP/1.1 protocol
+- [RFC 3875 — The Common Gateway Interface (CGI) 1.1](https://datatracker.ietf.org/doc/html/rfc3875) — reference for CGI environment variables and behavior
+- [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/) — classic introduction to sockets programming in C
+- [NGINX documentation](https://nginx.org/en/docs/) — reference for configuration file syntax and server behavior
+- [MDN — An overview of HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview) — accessible overview of the protocol
+- `man` pages: `socket(2)`, `bind(2)`, `listen(2)`, `accept(2)`, `poll(2)`, `fcntl(2)`, `execve(2)`, `pipe(2)`
+
+### AI usage
+
+AI (Claude, Anthropic) was used as a learning and productivity aid during this project, specifically for:
+
+- **Understanding concepts**: clarifying parts of the HTTP/1.1 RFC (chunked transfer encoding, header parsing rules) and the behavior of `poll()`-based event loops
+- **Build system**: explaining Makefile mechanics (pattern rules, automatic dependency generation with `-MMD -MP`, order-only prerequisites)
+- **Test drafting**: drafting some relative tests according to the requirements
+
+All core source code (configuration parsing, event loop, request/response handling, CGI execution) was designed, written, and debugged by the project's author(s). AI-generated explanations were used for understanding, and any AI-assisted content was reviewed, tested, and validated before inclusion.
