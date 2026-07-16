@@ -161,7 +161,7 @@ bool Client::sendData()
 // Routing
 // 1. 从Host header中提取host部分
 // 2. 根据host和监听端口在配置中找到匹配的server config
-void Client::process(const Config& config)
+void Client::process(const Config& config, SessionManager& sessionManager)
 {
   if (_state != STATE_PROCESSING)
     return;
@@ -203,6 +203,11 @@ void Client::process(const Config& config)
 	// std::cout << "Request URI: " << _request.getPath() << std::endl; 
 	// std::cout << "Resolved path: " << resolvePath << std::endl;
 
+  // ❓ 新增
+  // 创建/搜索session
+  _handleSession(sessionManager);
+  if (_newSession)
+		_response.addHeader("Set-Cookie", "session_id=" + _sessionId + "; Path=/; HttpOnly");
 
   if (Router::isCGI(*location, resolvePath))
   {
@@ -222,6 +227,7 @@ void Client::process(const Config& config)
   }
   _response.setKeepAlive(_keepAlive);
   _response.build(_request, *server, *location);
+
   // [DEBUG process]
 //   std::cout << _response.getData();
   _state = STATE_SENDING;
@@ -256,4 +262,28 @@ void Client::finalizeCGI()
 	_cgi = NULL;
 	_matchedServer = NULL;
 	_state = STATE_SENDING;
+}
+
+bool	Client::_handleSession(SessionManager& sessionManager)
+{
+	_newSession = false;
+	_sessionId.clear();
+
+	// cookie 存在
+	std::string sessionId = _request.getCookie("session_id");
+	if (!sessionId.empty())
+	{
+		Session* session = sessionManager.getSession(sessionId);
+		if (session)
+		{
+			_sessionId = sessionId;
+			return true;
+		}
+	}
+
+	// cookie 不存在或 session 不存在，创建新的 session
+	_sessionId = sessionManager.createSession();
+	_newSession = true;
+
+	return true;
 }

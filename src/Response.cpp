@@ -1,6 +1,7 @@
 #include "Response.hpp"
 #include "Router.hpp"
 #include "Utils.hpp"
+#include "SessionManager.hpp"
 
 
 /*
@@ -529,4 +530,9 @@ void    Response::setCGIResponse(const std::string& cgiOutput, const ServerConfi
         _headers["Content-Type"] = "text/html";
     
     _buildResponse();
+}
+
+void Response::addHeader(const std::string& key, const std::string& value)
+{
+    _headers[key] = value;
 }

@@ -15,6 +15,7 @@ SRCS 		= $(SRCDIR)/main.cpp \
 			$(SRCDIR)/Response.cpp \
 			$(SRCDIR)/CGI.cpp \
 			$(SRCDIR)/Router.cpp \
+			$(SRCDIR)/SessionManager.cpp \
 			$(SRCDIR)/Utils.cpp
 
 OBJS 		= $(SRCS:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)

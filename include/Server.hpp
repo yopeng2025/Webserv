@@ -6,6 +6,7 @@
 #include "Client.hpp"
 #include "Utils.hpp"
 #include "CGI.hpp"
+#include "SessionManager.hpp"
 
 class Client;
 
@@ -33,6 +34,7 @@ class Server
 		std::map<int, Client*>								_clients;
 		// Listen fd + ListenSocket
 		std::map<int, ListenSocket*>						_listenSocket;
+		SessionManager										_sessionManager;
 		
 		void	_createListenSockets();
 		int		_createSocket(const std::string& host, int port);

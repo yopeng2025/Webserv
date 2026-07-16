@@ -27,18 +27,18 @@ class Request
 		bool	feed(const std::string& data);
 		void	reset();
 
-		const std::map<std::string, std::string>& getHeaders() const;
-		std::string			getHeader(const std::string& str) const;
-		const std::string&	getMethod() const;
-		const std::string&	getRaw() const;
-		const std::string&	getVersion() const;
-		const std::string&	getPath() const;
-		const std::string&	getQuery() const;
-		const std::string&	getBody() const;
-		State 				getState() const;
-		int 				getErrorCode() const;
-
-
+		const std::map<std::string, std::string>& 	getHeaders() const;
+		std::string									getHeader(const std::string& str) const;
+		const std::string&							getMethod() const;
+		const std::string&							getRaw() const;
+		const std::string&							getVersion() const;
+		const std::string&							getPath() const;
+		const std::string&							getQuery() const;
+		const std::string&							getBody() const;
+		State 										getState() const;
+		int 										getErrorCode() const;
+		std::map<std::string, std::string> 			getCookies() const;
+    	const std::string 							getCookie(const std::string& key) const;
 
 	private:
 		std::string							_raw;

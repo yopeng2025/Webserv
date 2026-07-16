@@ -9,6 +9,8 @@
 
 struct ListenSocket;
 class Request;
+class SessionManager;
+class Session;
 
 class Client
 {
@@ -34,7 +36,7 @@ class Client
 		bool	hasTimeout() const;
 		bool	readData();
 		bool	sendData();
-		void	process(const Config& config);
+		void	process(const Config& config, SessionManager& sessionManager);
 		void	finalizeCGI();
 
 
@@ -50,11 +52,15 @@ class Client
 		const ServerConfig*		_matchedServer;
 		time_t					_lastActivity;
 		bool					_keepAlive;
+		bool					_newSession;
+		std::string				_sessionId;
+
+		void	_checkKeepAlive();
+		bool    _handleSession(SessionManager& sessionManager);
 
 		Client(const Client& other);
 		Client& operator=(const Client&);
 
-		void	_checkKeepAlive();
 };
 
 #endif

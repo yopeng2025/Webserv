@@ -463,7 +463,7 @@ void	Server::_processClient()
 		Client* c = it->second;
 		if (c->getState() == Client::STATE_PROCESSING)
 		{
-			c->process(_config);
+			c->process(_config, _sessionManager);
 
 			CGI* cgi = c->getCGI();
 			if (cgi)

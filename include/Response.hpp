@@ -6,6 +6,7 @@
 class Request;
 class ServerConfig;
 class LocationConfig;
+class SessionManager;
 
 class Response
 {
@@ -22,6 +23,7 @@ class Response
 		void    setCGIResponse(const std::string& cgiOutput, const ServerConfig& server);
 		void	setKeepAlive(bool keepAlive);
 		bool	getKeepAlive () const;
+		void    addHeader(const std::string& key, const std::string& value);
 		
 	private:
 		bool								_ready;
@@ -41,6 +43,7 @@ class Response
 		void		_handleDelete(const Request& req, const ServerConfig& server, const LocationConfig& location);
 		void 		_serveFile(const std::string&path, const ServerConfig& server);
 		void 		_serveAutoindex(const std::string& path, const std::string& uri);
+		void		_handleSession(const Request& req, SessionManager& sessionManager);
 };
 
 #endif

@@ -242,8 +242,8 @@ bool	Request::_parseHeaders()
 		std::string key = Utils::toLower(Utils::trim(line.substr(0, colon)));
 		std::string value = Utils::trim(line.substr(colon + 1));
 
-		if (key == "Cookie" || key == "cookie")
-			std::map<std::string, std::string> _cookies = _parseCookies(value);
+		if (key == "cookie")
+			_cookies = _parseCookies(value);
 
 		_headers[key] = value;
 	}
@@ -402,6 +402,18 @@ std::map<std::string, std::string> Request:: _parseCookies(const std::string& co
     return cookies;
 }
 
+
+const std::string Request::getCookie(const std::string& key) const
+{
+    std::map<std::string, std::string>::const_iterator it =
+        _cookies.find(key);
+
+    if (it == _cookies.end())
+        return "";
+
+    return it->second;
+}
+
 const std::map<std::string, std::string>& Request::getHeaders()  const { return _headers; }
 const std::string& Request::getMethod() const { return _method; }
 const std::string& Request::getRaw() const { return _raw; }
@@ -411,4 +423,4 @@ const std::string& Request::getPath() const { return _path; }
 const std::string& Request::getBody() const { return _body; }
 Request::State Request::getState() const { return _state; }
 int	Request::getErrorCode() const { return _errorCode; }
-
+std::map<std::string, std::string> Request::getCookies() const {std::cout << "[get cookies] size = " << _cookies.size() << std::endl; return _cookies;}

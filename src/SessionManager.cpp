@@ -19,6 +19,9 @@ std::string	SessionManager::createSession()
 	while(_sessions.find(id) != _sessions.end())
 		id = generateId();
 	_sessions[id] = Session();
+
+	std::cout << "[session create] " << id << std::endl;
+
 	return id;
 }
 

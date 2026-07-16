@@ -19,6 +19,7 @@ class SessionManager
 		SessionManager& operator=(const SessionManager&);
 
 		std::map<std::string, Session>	_sessions;
+		
 	public:
 		SessionManager();
 		~SessionManager();
