@@ -45,19 +45,19 @@ class Config
         const ServerConfig*                 findServer(const std::string& host, int port) const;
 
     private:
-        std::vector<ServerConfig>   _servers;
-        std::string                 _content;
-        size_t                      _pos;
+        std::vector<ServerConfig>           _servers;
+        std::string                         _content;
+        size_t                              _pos;
 
-        void            _removeComments();
-        void            _skipWhitespace();
-        std::string     _nextToken();
-        void            _expectToken(const std::string& expected);
-        void            _parseServer();
-        void            _parseListen(ServerConfig& server,const std::string& value);
-        void            _parseLocation(ServerConfig& server);
-        void            _vlidateConfig();
-        void            _clientMaxBody(size_t& clientMaxBody);
+    void                                    _removeComments();
+        void                                _skipWhitespace();
+        std::string                         _nextToken();
+        void                                _expectToken(const std::string& expected);
+        void                                _parseServer();
+        void                                _parseListen(ServerConfig& server,const std::string& value);
+        void                                _parseLocation(ServerConfig& server);
+        void                                _vlidateConfig();
+        void                                _clientMaxBody(size_t& clientMaxBody);
 
         Config(const Config&);                      // copy & assign functions, declared but not implemented (prevent copying)
         Config& operator=(const Config&);
