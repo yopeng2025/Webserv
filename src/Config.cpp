@@ -35,7 +35,6 @@ const LocationConfig* ServerConfig::findLocation(const std::string& uri) const
         // e.g. locationPath = "/images/logo" is a better match than locationPath = "/images"
         if (Utils::startsWith(uri, locationPath) || Utils::startsWith(uri + "/", locationPath))  
         {
-            // 检查uri后面是“/”而不是乱七八糟的也匹配上了
             if (locationPath == "/" || uri.size() == locationPath.size()
                 || uri.size() + 1 == locationPath.size()
                 || (locationPath[locationPath.size() - 1] == '/')
@@ -139,7 +138,7 @@ std::string Config::_nextToken()
     return _content.substr(start, _pos - start);
 }
 
-void Config::_expectToken(const std::string& expected)  // 返回值改为void, 如果token不匹配就抛出异常，不需要返回token
+void Config::_expectToken(const std::string& expected)
 {
     std::string token = _nextToken();
     if (token != expected)
@@ -237,13 +236,13 @@ void Config::_parseListen(ServerConfig& server,const std::string& value)
 {
 	if (value == ";")
 		throw (std::runtime_error("invalid number of arguments in \"listen\" directive"));
-    size_t colon = value.rfind(':');            //reverse find； 127.0.0.1:8080   [::1]:8080   localhost:8080   8080
-    if (colon != std::string::npos)             // If a colon is found, split the value into host and port
+    size_t colon = value.rfind(':');                                                        //reverse find； 127.0.0.1:8080   [::1]:8080   localhost:8080   8080
+    if (colon != std::string::npos)                                                         // If a colon is found, split the value into host and port
     {
-        server.host = value.substr(0, colon);                   // 127.0.0.1
+        server.host = value.substr(0, colon);                                               // 127.0.0.1
         server.port = Utils::toInt(value.substr(colon + 1));
     }
-    else                                        // If no colon is found, treat the entire value as the port and use the default host
+    else                                                                                    // If no colon is found, treat the entire value as the port and use the default host
     {
         bool isNumber = true;
         for (size_t i = 0; i < value.size(); i++)
@@ -257,7 +256,7 @@ void Config::_parseListen(ServerConfig& server,const std::string& value)
         if (isNumber)
             server.port = Utils::toInt(value.substr(colon + 1));
         else
-            server.host = value;                  // "127.0.0.1" or "localhost"
+            server.host = value;                                                             // "127.0.0.1" or "localhost"
     }
 
     if (server.port == 0 || server.port > 65535)
@@ -270,7 +269,7 @@ void Config::_removeComments()
 	result.reserve(_content.size());
 	for (size_t i = 0; i < _content.size(); ++i)
 	{
-		if (_content[i] == '#')													// When meet #, jump until the end of the line(keeping the '\n')
+		if (_content[i] == '#')													             // When meet #, jump until the end of the line(keeping the '\n')
 		{
 			while (i < _content.size() && _content[i] != '\n')
 				++i;
@@ -391,7 +390,6 @@ void Config::_vlidateConfig()
                         }
                     }
 
-                // 提醒有两个一样的server name, 此时不做任何动作；server执行的时候以第一个为准，第二个会被忽略
                 if (!hasdifferentnames)
                     LOG_INFO("Duplicate server on " << prev_server.host << ":" << prev_server.port
                             << " (same server_name). Second block will be ignored.");

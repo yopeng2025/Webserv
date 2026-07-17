@@ -46,10 +46,10 @@ bool Client::hasTimeout() const
 
 /*
 GET /index.html HTTP/1.1
-Host: localhost:8080
+Host: 		localhost:8080
 Connection: keep-alive
 User-Agent: Mozilla/5.0
-Accept: text/html
+Accept: 	text/html
 */
 void	Client::_checkKeepAlive()
 {
@@ -59,7 +59,6 @@ void	Client::_checkKeepAlive()
 	else if (connection == "close")
 		_keepAlive = false;
 	else
-		// HTTP/1.1默认keep-alive HTTP/1.0默认close
 		_keepAlive = (_request.getVersion() == "HTTP/1.1");
 }
 
@@ -67,23 +66,16 @@ bool Client::readData()
 {
 	char buffer[BUFFER_SIZE];
 
-	// 1. 从clicent socket读取数据（HTTP请求的原始文本数据）到缓冲区 （GET /index.html HTTP/1.1\r\n Host: localhost:8080 ...）
-	// = 0 client closed connection, < 0 error occurred, > 0 bytes read successfully
-	// recv() 多次调用才能读取1个完整的HTTP request，尤其是当请求体较大时
-	// TCP 把 request 切成很多块，服务器server必须自己用feed()将_raw拼回来
 	ssize_t bytesRead = recv(_fd, buffer, sizeof(buffer), 0);
 	if (bytesRead <= 0)
 		return false;
 
-	// 2. 更新时间戳
 	_lastActivity = time(NULL);
 
-	// 3. 将数据追加到请求对象中，并检查请求是否完整
 	std::string data(buffer, bytesRead);
 	bool isComplete = _request.feed(data);
 	if (isComplete)
 	{
-		// 4. 解析请求失败，构建错误响应 ❗错误响应之后应该关闭该客户连接
 		if (_request.getState() == Request::PARSE_ERROR)
 		{
 			ServerConfig defaultServerConfig;
@@ -107,33 +99,26 @@ bool Client::readData()
 
 bool Client::sendData()
 {
-	// 1.  如果响应还没有准备好，继续等待
 	if (!_response.isReady())
 		return true;
 
-	// 2. 从响应对象获取要发送的数据
 	const std::string& data = _response.getData();
-	size_t remainData = data.size() - _sendOffset;  //没发送 = 总数据 - 已发送
+	size_t remainData = data.size() - _sendOffset;
 
-	// 发送完成， 没有剩余的数据了
 	if (remainData == 0)
 	{
 		_state = STATE_DONE;
 		return true;  
 	}
 
-	// 3. 发送数据
-	// data.c_str() + _sendOffset: 发送数据的起始位置
-	// remainData: 还需要发送的数据长度
 	// send() returns the number of bytes actually sent, which may be less than remainData
 	ssize_t bytesSent = send(_fd, data.c_str() + _sendOffset, remainData, 0);
 	if (bytesSent <= 0)
 		return false;
 
-	_sendOffset += bytesSent;     // 更新已发送的字节数
-	_lastActivity = time(NULL);   // 更新时间戳
+	_sendOffset += bytesSent;
+	_lastActivity = time(NULL);
 
-	// 全部数据发送完成 根据keep-alive flag决定是否关闭客户
 	if (_sendOffset >= data.size())
 	{
 		_keepAlive = _response.getKeepAlive();
@@ -151,16 +136,13 @@ bool Client::sendData()
 	// std::cout << "[Data sent]>>>>>>>>>>>>>>>>>>>>>>>>>>>\n";
 	// std::cout << data << std::endl;
 	// size_t statusCode_postion = data.find("\r\n"); 
-	// std::cout << data.substr(0, statusCode_postion) << std::endl;   // 只打印响应的状态行
+	// std::cout << data.substr(0, statusCode_postion) << std::endl;
 	// std::cout << "_state: " << _state << std::endl;
 	// std::cout << "_keepAlive: " << _keepAlive << std::endl;
 
 	return true;
 }
 
-// Routing
-// 1. 从Host header中提取host部分
-// 2. 根据host和监听端口在配置中找到匹配的server config
 void Client::process(const Config& config, SessionManager& sessionManager)
 {
   if (_state != STATE_PROCESSING)
@@ -177,9 +159,9 @@ void Client::process(const Config& config, SessionManager& sessionManager)
   const ServerConfig* server = config.findServer(host, _listen->port); 
   if (!server)
   {
-    if (!config.getServers().empty())    // 如果没有匹配的server config，使用配置中的第一个server config作为默认
+    if (!config.getServers().empty())
       server = &config.getServers()[0];  
-    else                                 // 如果给出的.conf文件没有任何server config，构建500错误响应
+    else
     {
       ServerConfig defaultServer;
       _response.buildError(500, defaultServer);
@@ -191,7 +173,7 @@ void Client::process(const Config& config, SessionManager& sessionManager)
   const LocationConfig* location = server->findLocation(_request.getPath());
   if (!location)
   {
-    _response.buildError(404, *server); // 如果没有匹配的location config，构建404错误响应
+    _response.buildError(404, *server);
     _state = STATE_SENDING;
     return;
   }
@@ -203,8 +185,6 @@ void Client::process(const Config& config, SessionManager& sessionManager)
 	// std::cout << "Request URI: " << _request.getPath() << std::endl; 
 	// std::cout << "Resolved path: " << resolvePath << std::endl;
 
-  // ❓ 新增
-  // 创建/搜索session
   _handleSession(sessionManager);
   if (_newSession)
 		_response.addHeader("Set-Cookie", "session_id=" + _sessionId + "; Path=/; HttpOnly");
@@ -212,11 +192,11 @@ void Client::process(const Config& config, SessionManager& sessionManager)
   if (Router::isCGI(*location, resolvePath))
   {
     _cgi = new CGI();
-    if (!_cgi->execute(_request, *location, *server, resolvePath))  // (request, /directory, /YoupiBanane/youpi.bla)
+    if (!_cgi->execute(_request, *location, *server, resolvePath))
     {
       delete _cgi;
       _cgi = NULL;
-      _response.buildError(500, *server); // 如果CGI执行失败，构建500错误响应
+      _response.buildError(500, *server);
       _state = STATE_SENDING;
       return;
     }
@@ -228,8 +208,6 @@ void Client::process(const Config& config, SessionManager& sessionManager)
   _response.setKeepAlive(_keepAlive);
   _response.build(_request, *server, *location);
 
-  // [DEBUG process]
-//   std::cout << _response.getData();
   _state = STATE_SENDING;
 }
 
@@ -240,8 +218,6 @@ void Client::finalizeCGI()
 
 	if (_cgi->getTimeOut())
 	{
-		// [DEBUG CGI Timeout]
-		// std::cerr << "CGI time out\n";
 		_response.buildError(504, *server);
 		delete _cgi;
 		_cgi = NULL;
@@ -270,7 +246,7 @@ void	Client::_handleSession(SessionManager& sessionManager)
 
 	Session* session;
 
-	// cookie 存在
+	// Cookies exist
 	std::string sessionId = _request.getCookie("session_id");
 	if (!sessionId.empty())
 	{
@@ -287,7 +263,7 @@ void	Client::_handleSession(SessionManager& sessionManager)
 		}
 	}
 
-	// cookie 不存在或 session 不存在，创建新的 session
+	// Cookies do not exist -> create a new session
 	_sessionId = sessionManager.createSession();
 	session = sessionManager.getSession(_sessionId);
 	std::cout << "[SESSION create] "  << _sessionId.substr(0, 8) << "..."

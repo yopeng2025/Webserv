@@ -55,8 +55,6 @@ void Server::run()
 void Server::_createListenSockets()
 {
     const std::vector<ServerConfig>& servers = _config.getServers();
-    // save created <host port> pairs to avoid duplicates
-    // set: unique keys, sorted by alphabet
     std::set<std::pair<std::string, int> > createdSockets;
 
     for (size_t i = 0; i < servers.size(); i++)
@@ -64,8 +62,6 @@ void Server::_createListenSockets()
         // localhost:8080 or 127.0.0.1:8080
         std::pair<std::string, int> address(servers[i].host, servers[i].port);
 
-        // != .end(): same host:port is already created, skip this iteration to avoid duplicate sockets  （这里对应validateConfig里, 2个同样的host:port只处理第一个host:port）
-        // == .end(): address haven't been in createcSockets yet
         if (createdSockets.find(address) != createdSockets.end())
             continue;
         
@@ -236,11 +232,9 @@ void    Server::_addPollFd(int fd, short event)
 
 bool	setNonBlocking(int clientFd)
 {
-	// 查看clientFd原本的flag 
 	int flag = fcntl(clientFd, F_GETFL, 0);
 	if (flag == -1)
 		return (false);
-	// 设置non-blocking模式： 将原本的flag和O_NONBLOCK进行位或运算，得到新的flag，并设置回clientFd
 	if (fcntl(clientFd, F_SETFL, flag | O_NONBLOCK) < 0)
 		return (false);
 	return (true);
@@ -279,14 +273,12 @@ void	Server::_removeClient(int fd)
 
 void	Server::_acceptConnection(int listenFd)
 {
-	// int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) 后两个可选
 	// create a new socket for the accepted connection and return its fd
 	// failure -1 success >=0
 	int clientFd = accept(listenFd, NULL, NULL);
 	if (clientFd < 0)
 		return ;
 
-	// 设置non-blocking模式
 	if (!setNonBlocking(clientFd))
 	{
 		LOG_ERROR("fcntl() failed on client fd");
@@ -294,7 +286,6 @@ void	Server::_acceptConnection(int listenFd)
 		return ;
 	}
 
-	// ❗找到对应server（结构有修改）
 	std::map<int, ListenSocket*>::iterator it = _listenSocket.find(listenFd);
 	ListenSocket* ls = NULL;
 	if (it != _listenSocket.end())
@@ -343,7 +334,6 @@ void	Server::_handleClientRead(int fd)
 	std::map<int, Client*>::iterator it = _clients.find(fd);
 	if (it != _clients.end())
 	{
-		// 去到client里读数据
 		if (!it->second->readData())
 			_removeClient(fd);
 	}
@@ -354,7 +344,6 @@ void	Server::_handleClientWrite(int fd)
 	std::map<int, Client*>::iterator it = _clients.find(fd);
 	if (it != _clients.end())
 	{
-		// 去到client里发数据
 		if (!it->second->sendData())
 			_removeClient(fd);
 	}
@@ -392,14 +381,12 @@ void	Server::_handlePollEvent()
 		int fd = _pollfds[i].fd;
 		short revents = _pollfds[i].revents;
 
-		// 1. 看是不是Listen socket有新的连接
 		bool isListen = false;
 		for (std::map<int, ListenSocket*>::iterator it = _listenSocket.begin(); it != _listenSocket.end(); ++it)
 		{
 			int listen_fd = it->first;
-			if (fd == listen_fd && (revents & POLLIN))		// bitwise AND
+			if (fd == listen_fd && (revents & POLLIN))
 			{
-				// 新建连接之后，会在_client里新建client对象 并且在pollfd里添加这个client的fd和POLLIN事件
 				_acceptConnection(fd);
 				isListen = true;
 				break ;
@@ -408,18 +395,14 @@ void	Server::_handlePollEvent()
 		if (isListen)
 			continue ;
 
-		// 2. 看是不是CGI pipe ❗可使用_fdToClient
 		bool isCGI = false;
 		for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 		{
 			CGI* cgi = it->second->getCGI();
 			if (cgi)
 			{
-				// std::cerr << "Fd: " << fd << std::endl;
-				// std::cerr << "OutputFd: " << cgi->getOutputFd() << std::endl;
 				if (fd == cgi->getOutputFd())
 				{
-					// 不管是读还是挂断 都去读完然后看是否finish
 					if (revents & POLLIN || revents & POLLHUP)
 						_handleCGIRead(fd);
 					isCGI = true;
@@ -437,18 +420,14 @@ void	Server::_handlePollEvent()
 		if (isCGI)
 			continue ;
 
-		// 3. 剩余都是client socket的读写事件
-		// (1) 检查是否有错误、挂断或无效等 并清除client
 		if (revents & (POLLERR | POLLHUP | POLLNVAL))
 		{
 			_removeClient(fd);
 			continue ;
 		}
 
-		// (2) 检查client是否有读写事件 并调用对应的处理函数
 		if (revents & POLLIN)
 			_handleClientRead(fd);
-			//检查 client是否还存在
 		if (_clients.find(fd) == _clients.end())
 			continue ;
 		if (revents & POLLOUT)
@@ -469,7 +448,7 @@ void	Server::_processClient()
 			if (cgi)
 			{
 				if (cgi->getInputFd() >= 0)
-					_addPollFd(cgi->getInputFd(), POLLOUT); //修改CGIfd的event为POLLIN
+					_addPollFd(cgi->getInputFd(), POLLOUT);
 				if (cgi->getOutputFd() >= 0)
 					_addPollFd(cgi->getOutputFd(), POLLIN);
 			}
@@ -487,7 +466,7 @@ void	Server::_checkCGI()
 		if (cgi && c->getState() == Client::STATE_CGI_RUNNING)
 		{
 			cgi->reapChild();
-			if (cgi->isDone())   			// 还没有timeout
+			if (cgi->isDone())
 				c->finalizeCGI();
 			else if (cgi->checkTimeout())
 			{
@@ -533,18 +512,15 @@ void	Server::_pollLoop()
 {
 	while (_running && g_running)
 	{
-		// 1. 更新client状态 决定监听的动作
 		_updatePollEvent();
 
-		// int poll(struct pollfd *fds, nfds_t nfds, int timeout)
 		// 1. pollfds -> kernel
 		// 2. kernel monitors events on these fds (listen sockets / client sockets / CGI pipes)
-		// 3. pollfds.revents = POLLIN/POLLOUT/POLLERR/POLLHUP/POLLNVAL （处理完的listensocket会变回0）
+		// 3. pollfds.revents = POLLIN/POLLOUT/POLLERR/POLLHUP/POLLNVAL
 		// returns how many fds are ready for the requested
         // -1 error; 0 timeout; >0 number of fds with events
 		int	ready = poll(&_pollfds[0], _pollfds.size(), 1000);
 
-		// 返回错误或者无事发生
 		if (ready < 0)
         {
             if (!_running || !g_running)
@@ -552,21 +528,16 @@ void	Server::_pollLoop()
 			continue ;
         }
 		
-		// 2. 处理事件
 		_handlePollEvent();
 
-		// 3. 处理刚读完的 正在process状态的client
 		_processClient();
 
-		// 4. 结束CGI 查看CGI是正常结束还是卡死超时
 		_checkCGI();
-		// 5. 查看CLient是否超时
+
 		_checkTimeouts();
 
-		// 5. 查看Session是否超时
 		_sessionManager.cleanExpiredSession();
 
-		// 6. 回收完成生命周期的client （正常client， 非正常的前面都已回收）
 		_removeDoneClient();
 	}
 }
