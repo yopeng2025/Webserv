@@ -13,7 +13,7 @@ std::string Router::resolvePath(const std::string& uri, const LocationConfig& lo
     if (!locPath.empty() && locPath[locPath.size() - 1] == '/')
         locPath = locPath.substr(0, locPath.size() - 1);
     if (Utils::startsWith(relativePath, locPath))
-        relativePath = relativePath.substr(locPath.length()); // images/logo.png -> /logo.png
+        relativePath = relativePath.substr(locPath.length());       // images/logo.png -> /logo.png
     
     while (!relativePath.empty() && relativePath[0] == '/')
         relativePath = relativePath.substr(1);                     // /logo.png -> logo.png remove /     
