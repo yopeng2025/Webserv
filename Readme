@@ -15,24 +15,25 @@ The server:
 - Executes **CGI** scripts (e.g., PHP or Python) for dynamic content
 - Uses a single `poll()` (or equivalent) loop to multiplex all I/O — reads, writes, and new connections — making it fully non-blocking
 - Returns accurate HTTP status codes and default error pages, and remains available under stress
-
+- Supports **cookie-based session management** — the server assigns each visitor a unique session ID via `Set-Cookie`, tracks visit counts and last-seen timestamps, and automatically expires inactive sessions after a configurable timeout
 ### Project structure
 
 ```
 webserv/
 ├── Makefile
-├── include/        # Header files
+├── include/            # Header files
 ├── src/
-│   ├── main.cpp    # Entry point
-│   ├── Config.cpp  # Configuration file parsing
-│   ├── Server.cpp  # Socket setup and event loop
-│   ├── Client.cpp  # Per-connection state management
-│   ├── Request.cpp # HTTP request parsing
-│   ├── Response.cpp# HTTP response building
-│   ├── Router.cpp  # Route matching and method dispatch
-│   ├── CGI.cpp     # CGI execution
-│   └── Utils.cpp   # Helper functions
-└── conf/           # Example configuration files
+│   ├── main.cpp        # Entry point
+│   ├── Config.cpp      # Configuration file parsing
+│   ├── Server.cpp      # Socket setup and event loop
+│   ├── Client.cpp      # Per-connection state management
+│   ├── Request.cpp     # HTTP request parsing
+│   ├── Response.cpp    # HTTP response building
+│   ├── Router.cpp      # Route matching and method dispatch
+│   ├── CGI.cpp         # CGI execution
+│   ├── SessionManager.cpp  # Cookie-based session management
+│   └── Utils.cpp       # Helper functions
+└── conf/               # Example configuration files
 ```
 
 ## Instructions
@@ -83,13 +84,14 @@ curl -v http://localhost:8080/
 # POST request
 curl -v -X POST -d "hello" http://localhost:8080/upload
 # DELETE request
-curl -v -X DELETE http://localhost:8080/file.txt
+curl -v -X DELETE http://localhost:8080/upload/file.txt
 ```
 
 Stress testing can be done with tools such as `siege`:
 
 ```bash
-siege -b http://localhost:8080/
+# benchmark mode: hammer the server with no delay between requests
+siege -b http://127.0.0.1:8080/
 ```
 
 ## Resources

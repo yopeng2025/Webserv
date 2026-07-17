@@ -20,9 +20,7 @@ std::string	SessionManager::createSession()
 		id = generateId();
 	_sessions[id] = Session();
 
-	std::cout << "[session create] " << id << std::endl;
-
-	return id;
+	return (id);
 }
 
 Session*	SessionManager::getSession(const std::string& id)
@@ -36,12 +34,12 @@ Session*	SessionManager::getSession(const std::string& id)
 	return (&it->second);
 }
 
-void		SessionManager::destroySession(const std::string& id)
-{
-	_sessions.erase(id);
-}
+// void		SessionManager::destroySession(const std::string& id)
+// {
+// 	_sessions.erase(id);
+// }
 
-void		SessionManager::cleanExpired()
+void		SessionManager::cleanExpiredSession()
 {
 	time_t now = std::time(NULL);
 	std::map<std::string, Session>::iterator it =  _sessions.begin();

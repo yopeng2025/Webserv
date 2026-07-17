@@ -277,12 +277,18 @@ bool	Client::_handleSession(SessionManager& sessionManager)
 		if (session)
 		{
 			_sessionId = sessionId;
+			session->visitCount++;
+			std::cout << "[SESSION] " << sessionId.substr(0, 8) << "..."
+					  << "visit #" << session->visitCount
+					  << " " << _request.getMethod() << " " << _request.getPath()
+					  << std::endl;
 			return true;
 		}
 	}
 
 	// cookie 不存在或 session 不存在，创建新的 session
 	_sessionId = sessionManager.createSession();
+	std::cout << "[session create] " << _sessionId << std::endl;
 	_newSession = true;
 
 	return true;

@@ -306,6 +306,7 @@ void	Server::_acceptConnection(int listenFd)
 	}
 	
 	Client* client = new Client(clientFd, ls);
+	std::cout << "[CLIENT] " << "new client creted, fd: " << clientFd << std::endl;
 	_clients[clientFd] = client;
 	// 在发送respnse之前 先只允许POLLIN
 	_addPollFd(clientFd, POLLIN);
@@ -545,7 +546,7 @@ void	Server::_pollLoop()
 		int	ready = poll(&_pollfds[0], _pollfds.size(), 1000);
 
 		// 返回错误或者无事发生
-		if (ready <= 0)
+		if (ready < 0)
         {
             if (!_running || !g_running)
                 break;
@@ -560,8 +561,11 @@ void	Server::_pollLoop()
 
 		// 4. 结束CGI 查看CGI是正常结束还是卡死超时
 		_checkCGI();
-		// 5. 查看HTTP是否超时
+		// 5. 查看CLient是否超时
 		_checkTimeouts();
+
+		// 5. 查看Session是否超时
+		_sessionManager.cleanExpiredSession();
 
 		// 6. 回收完成生命周期的client （正常client， 非正常的前面都已回收）
 		_removeDoneClient();

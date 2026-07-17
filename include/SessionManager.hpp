@@ -27,8 +27,8 @@ class SessionManager
 		std::string	generateId();
 		std::string	createSession();
 		Session*	getSession(const std::string& id);
-		void		destroySession(const std::string& id);
-		void		cleanExpired();
+		// void		destroySession(const std::string& id);
+		void		cleanExpiredSession();
 };
 
 
