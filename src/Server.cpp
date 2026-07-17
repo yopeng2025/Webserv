@@ -308,7 +308,6 @@ void	Server::_acceptConnection(int listenFd)
 	Client* client = new Client(clientFd, ls);
 	std::cout << "[CLIENT] " << "new client creted, fd: " << clientFd << std::endl;
 	_clients[clientFd] = client;
-	// 在发送respnse之前 先只允许POLLIN
 	_addPollFd(clientFd, POLLIN);
 }
 
