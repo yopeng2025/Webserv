@@ -86,8 +86,8 @@ void Server::_createListenSockets()
 
             // POLLIN： tell POLL to monitor the fd for incoming data (e.g., new connections or data to read)
             //          binary mask e.g. 0x0001
-			// POLLIN  = server收请求（recv HTTP request）
-			// POLLOUT = server发响应（send HTTP response）
+			// POLLIN  = server recv HTTP request
+			// POLLOUT = server send HTTP response
             _addPollFd(fd, POLLIN);
  
             createdSockets.insert(address);

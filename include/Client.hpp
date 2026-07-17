@@ -15,7 +15,6 @@ class Session;
 class Client
 {
 	public:
-		// 枚举 背后是整数(0~N)
 		enum State
 		{
 			STATE_READING,

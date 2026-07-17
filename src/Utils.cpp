@@ -23,8 +23,6 @@ bool	Utils::toSizeTHex(const std::string& str, size_t& n)
 	size_t tmp;
 	char c;
 	std::istringstream iss(str);
-	// 切换成16进制
-	// 10 = 1 x 16 + 0 = 16
 	iss >> std::hex;
 	if (!(iss >> tmp) || iss >> c)
 		return (false);
@@ -97,9 +95,8 @@ static bool	isxdigit(char c)
 
 bool	Utils::decodePath(const std::string& str, std::string& out)
 {
-	// 百分号解码
 	// %20 -> ' '
-	// %2F -> '/' 以此类推
+	// %2F -> '/'
 	out.clear();
 	out.reserve(str.size());
 	for (size_t i = 0; i < str.size(); ++i)
@@ -127,7 +124,7 @@ bool	Utils::decodePath(const std::string& str, std::string& out)
 
 bool	Utils::decodeQuery(const std::string& str, std::string& out)
 {
-	// 百分号解码
+	// decode %
 	out.clear();
 	out.reserve(str.size());
 	for (size_t i = 0; i < str.size(); ++i)
@@ -148,7 +145,7 @@ bool	Utils::decodeQuery(const std::string& str, std::string& out)
 			out += static_cast<char>(value);
 			i += 2;
 		}
-		// Query+号变空格
+		// Query+ -> ' '
 		// user=Alice+Green -> user=Alice Green
 		else if (str[i] == '+')
 			out += ' ';
@@ -158,7 +155,7 @@ bool	Utils::decodeQuery(const std::string& str, std::string& out)
 	return (true);
 }
 
-// 规范化路径，有效地处理 . 和 ..（回到上一个文件夹），并删除多余的斜杠
+// Normalize paths, handle “.” and “..” (go back to the previous folder) correctly, and remove extra slashes
 std::string Utils::sanitizePath(const std::string& path)
 {
 	std::vector<std::string> parts;
@@ -208,10 +205,11 @@ std::string Utils::joinPath(const std::string& a, const std::string& b)
 	return a + b;
 }
 
-//把整个文件的内容读出来，放进一个 std::string 里返回
+// Read the contents of the entire file, store them in a std::string, and return it
 bool Utils::readFile(const std::string& path, std::string& body)
 {
-	std::ifstream ifs(path.c_str(), std::ios::binary); // 以二进制模式放入文件流，防止换行符被转换/丢失图片数据
+	 // Write to the file stream in binary mode to prevent line breaks from being converted or image data from being lost
+	std::ifstream ifs(path.c_str(), std::ios::binary);
 	// 检查文件是否成功打开
 	if (!ifs.is_open())
 		return (false);
@@ -240,16 +238,14 @@ bool Utils::isRegularFile(const std::string& path)
 	return (S_ISREG(info.st_mode));
 }
 
-// 检查文件或目录是否存在
-//原名叫fileExists，但更改为pathExists更准确，因为它可以检查目录和文件是否存在
+// Check if a file or directory exists
 bool Utils::pathExists(const std::string& path)  
 {
 	struct stat info;
 	return (stat(path.c_str(), &info) == 0);
 }
 
-// Multipurpose Internet Mail Extensions
-// 表示数据类型(Content Type)
+// Multipurpose Internet Mail Extensions (Content Type)
 // text/html text/css application/javascript image/png video/mp4 ...
 std::string Utils::getMimeType(const std::string& path) {
 	std::string ext = getExtension(path);
@@ -271,7 +267,7 @@ std::string Utils::getMimeType(const std::string& path) {
 	if (ext == ".woff")						return "font/woff";
 	if (ext == ".woff2")					return "font/woff2";
 	if (ext == ".ttf")						return "font/ttf";
-	return "application/octet-stream"; // 应用程序的1个字节流（未知格式），浏览器看到后直接下载
+	return "application/octet-stream"; //  // A 1-byte stream from the application (unknown format); when the browser encounters it, it downloads it directly
 }
 
 std::string Utils::getExtension(const std::string& path)
