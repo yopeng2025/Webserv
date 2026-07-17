@@ -33,7 +33,7 @@
 // marcos
 # define DEFAULT_CONFIG "config/default.conf"
 # define CLIENT_TIMEOUT  60      // seconds
-# define CGI_TIMEOUT     30    
+# define CGI_TIMEOUT     60    
 # define SESSION_TIMEOUT 1800    // 30mins
 # define BUFFER_SIZE    4096    // 1KB = 1024 bytes 4KB = 4096 bytes
 # define SERVER_NAME "Webserv/1.0"

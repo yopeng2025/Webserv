@@ -279,7 +279,7 @@ void	Client::_handleSession(SessionManager& sessionManager)
 		{
 			_sessionId = sessionId;
 			session->visitCount++;
-			std::cout << "[SESSION] " << sessionId.substr(0, 8) << "..."
+			std::cout << "[SESSION]        " << sessionId.substr(0, 8) << "..."
 					  << "visit #" << session->visitCount
 					  << " " << _request.getMethod() << " " << _request.getPath()
 					  << std::endl;
