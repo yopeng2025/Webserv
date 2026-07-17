@@ -31,8 +31,6 @@ void CGI::closeFds()
 bool CGI::execute(const Request& request, const LocationConfig& location,
 					const ServerConfig& server, const std::string& scriptPath)
 {
-	// current working directory
-	// 4096: common maximum path length in Linux
 	// /home/login/webserv + / +  cgi-bin/script.py -> /home/login/webserv/cgi-bin/script.py
 	std::string absoluteScriptPath = scriptPath;
 	if (!scriptPath.empty() && scriptPath[0] != '/')
@@ -41,17 +39,12 @@ bool CGI::execute(const Request& request, const LocationConfig& location,
 	std::string cgiPath = location.cgiPath;
 	if (cgiPath.empty())
 		_exit(1);	
-	// 绝对路径 ./cgi_tester -> /home/login/webserv/cgi_tester
+	// cgi_tester -> /home/login/webserv/cgi_tester
 	if (!cgiPath.empty() && cgiPath[0] != '/')
 		cgiPath = Utils::addAbsolutePath(cgiPath);
 
-	// Unix pipe() 单向通信机制，父进程和子进程之间通过管道进行数据传输
-	// pipefd[1] 管道的写端 | pipefd[0] 管道的读端
-
-	// CGI：父进程和子进程之间的双向通信（full duplex）
-	// 父进程写入数据，子进程从管道读取数据 inputPipe[1]父 -> inputPipe[0]子
-	// 子进程写入数据，父进程从管道读取数据 outputPipe[1]子 -> outputPipe[0]父
-	// 父（写） -> |子（读-写）| -> 父（读）
+	// CGI：mutuel communication between parent process & child process（full duplex）
+	// parent(w) -> |chile(r) child(w)| -> parent(r)
 	int inputPipe[2];  
 	int outputPipe[2];
 
@@ -78,18 +71,15 @@ bool CGI::execute(const Request& request, const LocationConfig& location,
 		close(outputPipe[0]);
 		return false;
 	}
-	// 子进程 child process
+	// child process
 	else if (_pid == 0) 
 	{
-		// 关闭父进程的写端和读端
 		close(inputPipe[1]);
 		close(outputPipe[0]);
 
-		// dup2(oldfd, newfd);
 		dup2(inputPipe[0], STDIN_FILENO);
 		dup2(outputPipe[1], STDOUT_FILENO);
 
-		// close(oldfd)
 		close(inputPipe[0]);
 		close(outputPipe[1]);
 
@@ -99,11 +89,9 @@ bool CGI::execute(const Request& request, const LocationConfig& location,
 		std::vector<std::string> env = _buildEnvironment(request, server, absoluteScriptPath);
 		std::vector<char*> envptr;
 		for (size_t i = 0; i < env.size(); i++)
-			// std::string -> char* -> const char*
 			envptr.push_back(const_cast<char*>(env[i].c_str()));
 		envptr.push_back(NULL);
 		
-		// change directory to the script's directory
 		std::string scriptDir = absoluteScriptPath;
 		size_t lastSlash = scriptDir.rfind('/');
 		if (lastSlash != std::string::npos)
@@ -112,7 +100,6 @@ bool CGI::execute(const Request& request, const LocationConfig& location,
 			chdir(scriptDir.c_str());
 		}
 
-		// Execute CGI script
 		char *argv[3];
 		argv[0] = const_cast<char*>(cgiPath.c_str());
 		argv[1] = const_cast<char*>(absoluteScriptPath.c_str());
@@ -122,7 +109,7 @@ bool CGI::execute(const Request& request, const LocationConfig& location,
 		std::cerr << "CGI: Failed to execute CGI script" << std::endl;
 		_exit(1);
 	}
-	// 父进程 parent process
+	// parent process
 	else
 	{
 		close(inputPipe[0]);
@@ -137,8 +124,6 @@ bool CGI::execute(const Request& request, const LocationConfig& location,
 			fcntl(outputPipe[0], F_SETFL, flag2 | O_NONBLOCK) < 0)
 		{
 			LOG_ERROR("CGI: Failed to set input pipe non-blocking");
-			// closeFds();
-			// return false; // ！！！原本没有return false， 会导致non-blocking设置失败时，仍然继续执行，后面的读写操作阻塞
 		}
 	}
 	_startTime = time(NULL);
@@ -153,7 +138,6 @@ std::vector<std::string> CGI::_buildEnvironment(const Request& request,
 {
 	std::vector<std::string> env;
 
-	// 将request请求的相关信息和服务器配置提取出来， 写入CGI需要的环境变量
 	env.push_back("REQUEST_METHOD=" + request.getMethod());
 	env.push_back("QUERY_STRING=" + request.getQuery());
 	env.push_back("CONTENT_TYPE=" + request.getHeader("Content-Type"));
@@ -173,9 +157,6 @@ std::vector<std::string> CGI::_buildEnvironment(const Request& request,
 	env.push_back("REDIRECT_STATUS=200");	// 200 = OK
 
 	const std::map<std::string, std::string>& headers = request.getHeaders();
-
-	// HTTP headers
-	// User-agent -> HTTP_USER_AGENT
 	for (std::map<std::string, std::string>::const_iterator it = headers.begin();
 		 it != headers.end();
 		 it++)
@@ -257,7 +238,7 @@ bool CGI::readOutput()
 	if (bytesRead > 0)
 	{
 		_output.append(buffer, bytesRead);
-		return false;		//还没读完，还要继续读
+		return false;
 	}
 	if (bytesRead == 0) //EOF
 	{
@@ -337,5 +318,5 @@ bool CGI::writeBody()
 		_bodyWritten = true; // Error occurred, mark as done to prevent further
 		return true;
 	}
-	return false; // 逻辑上不可达，但能消除警告
+	return false;
 }
