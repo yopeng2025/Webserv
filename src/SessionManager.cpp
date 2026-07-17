@@ -19,6 +19,7 @@ std::string	SessionManager::createSession()
 	while(_sessions.find(id) != _sessions.end())
 		id = generateId();
 	_sessions[id] = Session();
+	_sessions[id].visitCount++;
 
 	return (id);
 }

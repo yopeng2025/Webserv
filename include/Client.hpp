@@ -56,7 +56,7 @@ class Client
 		std::string				_sessionId;
 
 		void	_checkKeepAlive();
-		bool    _handleSession(SessionManager& sessionManager);
+		void    _handleSession(SessionManager& sessionManager);
 
 		Client(const Client& other);
 		Client& operator=(const Client&);

@@ -263,17 +263,18 @@ void Client::finalizeCGI()
 	_matchedServer = NULL;
 	_state = STATE_SENDING;
 }
-
-bool	Client::_handleSession(SessionManager& sessionManager)
+void	Client::_handleSession(SessionManager& sessionManager)
 {
 	_newSession = false;
 	_sessionId.clear();
+
+	Session* session;
 
 	// cookie 存在
 	std::string sessionId = _request.getCookie("session_id");
 	if (!sessionId.empty())
 	{
-		Session* session = sessionManager.getSession(sessionId);
+		session = sessionManager.getSession(sessionId);
 		if (session)
 		{
 			_sessionId = sessionId;
@@ -282,14 +283,18 @@ bool	Client::_handleSession(SessionManager& sessionManager)
 					  << "visit #" << session->visitCount
 					  << " " << _request.getMethod() << " " << _request.getPath()
 					  << std::endl;
-			return true;
+			return ;
 		}
 	}
 
 	// cookie 不存在或 session 不存在，创建新的 session
 	_sessionId = sessionManager.createSession();
-	std::cout << "[session create] " << _sessionId << std::endl;
+	session = sessionManager.getSession(_sessionId);
+	std::cout << "[SESSION create] "  << _sessionId.substr(0, 8) << "..."
+					  << "visit #" << session->visitCount
+					  << " " << _request.getMethod() << " " << _request.getPath()
+					  << std::endl;
 	_newSession = true;
 
-	return true;
+	return ;
 }
