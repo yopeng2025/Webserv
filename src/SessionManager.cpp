@@ -42,7 +42,11 @@ Session*	SessionManager::getSession(const std::string& id)
 
 void		SessionManager::cleanExpiredSession()
 {
+	static time_t lastClean = 0;
 	time_t now = std::time(NULL);
+	if (now - lastClean < 60)
+		return ;
+	lastClean = now;
 	std::map<std::string, Session>::iterator it =  _sessions.begin();
 	while (it != _sessions.end())
 	{

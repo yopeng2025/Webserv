@@ -306,7 +306,7 @@ void	Server::_acceptConnection(int listenFd)
 	}
 	
 	Client* client = new Client(clientFd, ls);
-	std::cout << "[CLIENT] " << "new client creted, fd: " << clientFd << std::endl;
+	std::cout << "[CLIENT] " << "new client created, fd: " << clientFd << std::endl;
 	_clients[clientFd] = client;
 	_addPollFd(clientFd, POLLIN);
 }
