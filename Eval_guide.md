@@ -1,6 +1,6 @@
 # Webserv 42 Evaluation Guide
 
-All commands assume you are in the project root: `cd ~/webserv/github-main`
+All commands assume you are in the project root: `cd ~/webserv`
 
 ---
 
