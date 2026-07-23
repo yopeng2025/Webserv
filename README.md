@@ -91,6 +91,7 @@ Stress testing can be done with tools such as `siege`:
 # benchmark mode: hammer the server with no delay between requests
 siege -b http://127.0.0.1:8080/
 ```
+> :bulb: **NOTICE**: For a detailed guide on how to setup such an infrastructure, please refer to the [Eval_guide](Eval_guide.md).
 
 ## Resources
 
