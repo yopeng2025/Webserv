@@ -540,7 +540,7 @@ Before entering the resource / quick reference section, verify that the tester w
 
 ### Terminal 1
 ```bash
-./webserv config/default.conf
+./webserv config/tester.conf
 ```
 
 ### Terminal 2

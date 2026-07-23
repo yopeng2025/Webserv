@@ -302,7 +302,7 @@ void Response::_handleDelete(const Request& request, const ServerConfig& server,
 
 void Response::_serveFile(const std::string&path, const ServerConfig& server)
 {
-    if (!Utils::pathExists(path))
+	if (!Utils::pathExists(path))
         return buildError(404, server); // 404 not found
 
 	if (access(path.c_str(), R_OK) != 0)
