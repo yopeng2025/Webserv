@@ -534,6 +534,25 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/cgi-bin/nonexistent
 ```
 **Expected:** `502 or 512 or 404`
 
+## 9. 42 TESTER 
+
+Before entering the resource / quick reference section, verify that the tester works correctly.
+
+### Terminal 1
+```bash
+./webserv config/default.conf
+```
+
+### Terminal 2
+```bash
+chmod +x /Youpibanane/cgi_tester tester
+
+./tester http://localhost:8080
+```
+**Expected:**  
+Output contains `success`.
+
+
 ---
 
 ## Quick Reference: Config Files
