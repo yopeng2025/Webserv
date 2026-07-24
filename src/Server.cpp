@@ -140,6 +140,7 @@ int Server::_createSocket(const std::string& host, int port)
     // sin_port:   port number in network byte order (htons converts from host to network byte order)
     // htons:      host to network short; converts a 16-bit number from host byte order to network byte order (big-endian)
     //             8080(decimal) = 0x1F90 (hex) -> 1F 90 Network Byte Oder bytes(big-endian) {！= 90 1F Host Byte Oder bytes(little-endian)}
+	// htol:       host to network long; converts a 32-bit number from host byte order to network byte order (big-endian)
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
 
